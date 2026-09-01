@@ -12,8 +12,10 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.PopupMenu
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +40,16 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var btnMute: ImageButton
     private lateinit var btnSources: ImageButton
     private lateinit var btnLang: ImageButton
+    private lateinit var btnFalseColor: ImageButton
+    private lateinit var btnHistogram: ImageButton
     private lateinit var leftBar: View
+    private lateinit var histogramContainer: FrameLayout
+    private lateinit var histogramView: HistogramView
+    private lateinit var histogramControls: View
+    private lateinit var seekHistSize: SeekBar
+    private lateinit var seekHistAlpha: SeekBar
+    private var falseColorOn = false
+    private var histogramOn = false
 
     private var stream: NdiStream? = null
     private var streamBandwidth = -1
@@ -81,7 +92,14 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnMute = findViewById(R.id.btnMute)
         btnSources = findViewById(R.id.btnSources)
         btnLang = findViewById(R.id.btnLang)
+        btnFalseColor = findViewById(R.id.btnFalseColor)
+        btnHistogram = findViewById(R.id.btnHistogram)
         leftBar = findViewById(R.id.leftBar)
+        histogramContainer = findViewById(R.id.histogramContainer)
+        histogramView = findViewById(R.id.histogramView)
+        histogramControls = findViewById(R.id.histogramControls)
+        seekHistSize = findViewById(R.id.seekHistSize)
+        seekHistAlpha = findViewById(R.id.seekHistAlpha)
         renderer = VideoRenderer(surface)
 
         try {
@@ -126,6 +144,15 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
         btnMute.setOnClickListener { toggleMute() }
         btnLang.setOnClickListener { showLanguageMenu(it) }
+        btnFalseColor.setOnClickListener { toggleFalseColor() }
+        btnHistogram.setOnClickListener { toggleHistogram() }
+
+        // Histogram: draggable
+        setupHistogramDrag()
+        setupHistogramControls()
+        renderer.histogramCallback = { r, g, b, l ->
+            if (histogramOn) runOnUiThread { histogramView.updateHistogram(r, g, b, l) }
+        }
 
         // Touch to hide/show UI
         surface.setOnTouchListener { _, event ->
@@ -211,6 +238,67 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             statusChip.setBackgroundResource(R.drawable.chip_bg)
             statusChip.setTextColor(0xFFE8EAED.toInt())
         }
+    }
+
+    private fun toggleFalseColor() {
+        falseColorOn = !falseColorOn
+        renderer.falseColorEnabled = falseColorOn
+        btnFalseColor.alpha = if (falseColorOn) 1f else 0.5f
+        Toast.makeText(this, if (falseColorOn) "False color ON" else "False color OFF", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun toggleHistogram() {
+        histogramOn = !histogramOn
+        histogramContainer.visibility = if (histogramOn) View.VISIBLE else View.GONE
+        histogramControls.visibility = if (histogramOn) View.VISIBLE else View.GONE
+        btnHistogram.alpha = if (histogramOn) 1f else 0.5f
+        if (histogramOn) showUi()
+    }
+
+    private fun setupHistogramDrag() {
+        var dX = 0f; var dY = 0f
+        histogramContainer.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    dX = v.x - event.rawX
+                    dY = v.y - event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    v.animate().x(event.rawX + dX).y(event.rawY + dY).setDuration(0).start()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun setupHistogramControls() {
+        seekHistSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) {
+                val scale = 0.6f + p / 100f * 1.4f // 0.6x .. 2.0x
+                val baseW = (160 * resources.displayMetrics.density).toInt()
+                val baseH = (100 * resources.displayMetrics.density).toInt()
+                val lp = histogramContainer.layoutParams
+                lp.width = (baseW * scale).toInt()
+                lp.height = (baseH * scale).toInt()
+                histogramContainer.layoutParams = lp
+            }
+            override fun onStartTrackingTouch(s: SeekBar?) {}
+            override fun onStopTrackingTouch(s: SeekBar?) {}
+        })
+        seekHistAlpha.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) {
+                histogramContainer.alpha = 0.2f + p / 100f * 0.8f
+                histogramControls.alpha = 0.2f + p / 100f * 0.8f
+            }
+            override fun onStartTrackingTouch(s: SeekBar?) {}
+            override fun onStopTrackingTouch(s: SeekBar?) {}
+        })
+        // init alpha
+        histogramContainer.alpha = 0.84f
+        btnFalseColor.alpha = 0.5f
+        btnHistogram.alpha = 0.5f
     }
 
     // ---------------------------------------------------------- sources sheet

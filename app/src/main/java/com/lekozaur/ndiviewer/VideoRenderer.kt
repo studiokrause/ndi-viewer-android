@@ -52,6 +52,9 @@ class VideoRenderer(private val view: FitSurfaceView) {
     private val main = Handler(Looper.getMainLooper())
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
 
+    @Volatile var falseColorEnabled = false
+    var histogramCallback: ((r: IntArray, g: IntArray, b: IntArray, l: IntArray) -> Unit)? = null
+
     private var bitmaps = arrayOfNulls<Bitmap>(2)
     private var writeIdx = 0
 
@@ -102,6 +105,12 @@ class VideoRenderer(private val view: FitSurfaceView) {
         buf.rewind()
         try {
             bmp.copyPixelsFromBuffer(buf)
+            if (falseColorEnabled) applyFalseColor(bmp)
+            // compute histogram for overlay (sample every 4th pixel for performance)
+            histogramCallback?.let { cb ->
+                // run on copy to avoid blocking draw
+                try { computeHistogram(bmp, cb) } catch (_: Throwable) {}
+            }
         } catch (_: Throwable) {
             return
         }
@@ -155,6 +164,44 @@ class VideoRenderer(private val view: FitSurfaceView) {
             } catch (_: Throwable) {
             }
         }
+    }
+
+    private fun applyFalseColor(bmp: Bitmap) {
+        // Simple heatmap: luma 0..255 -> blue->green->yellow->red
+        val w = bmp.width; val h = bmp.height
+        val pixels = IntArray(w * h)
+        bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+        for (i in pixels.indices) {
+            val c = pixels[i]
+            val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
+            val luma = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255)
+            val fc = when {
+                luma < 64 -> Color.rgb(0, luma * 4, 255) // black->blue
+                luma < 128 -> Color.rgb(0, 255, 255 - (luma - 64) * 4) // blue->green
+                luma < 192 -> Color.rgb((luma - 128) * 4, 255, 0) // green->yellow
+                else -> Color.rgb(255, 255 - (luma - 192) * 2, 0) // yellow->red
+            }
+            pixels[i] = 0xFF000000.toInt() or (fc and 0x00FFFFFF)
+        }
+        bmp.setPixels(pixels, 0, w, 0, 0, w, h)
+    }
+
+    private fun computeHistogram(bmp: Bitmap, cb: (IntArray, IntArray, IntArray, IntArray) -> Unit) {
+        val w = bmp.width; val h = bmp.height
+        // sample every 4th pixel to keep 30fps
+        val step = 4
+        val histR = IntArray(256); val histG = IntArray(256); val histB = IntArray(256); val histL = IntArray(256)
+        val pixels = IntArray(w * h)
+        bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+        var idx = 0
+        while (idx < pixels.size) {
+            val c = pixels[idx]
+            val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
+            val l = (0.299 * r + 0.587 * g + 0.114 * b).toInt()
+            histR[r]++; histG[g]++; histB[b]++; histL[l.coerceIn(0,255)]++
+            idx += step
+        }
+        cb(histR, histG, histB, histL)
     }
 
     fun clear() {
