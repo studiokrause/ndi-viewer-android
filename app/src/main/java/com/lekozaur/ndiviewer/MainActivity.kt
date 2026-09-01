@@ -270,8 +270,8 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) {
                 val a = 0.2f + p / 100f * 0.8f
                 histogramContainer.alpha = a
-                histogramControls.alpha = a
                 falseColorScaleContainer.alpha = a
+                // histogramControls stays opaque - do not change its alpha
             }
             override fun onStartTrackingTouch(s: SeekBar?) {}
             override fun onStopTrackingTouch(s: SeekBar?) {}

@@ -1,0 +1,74 @@
+[
+  {
+    "ire": 0,
+    "zakres": "0–2",
+    "kolor": "White",
+    "hex": "#FFFFFF"
+  },
+  {
+    "ire": 2,
+    "zakres": "2–10",
+    "kolor": "Blue",
+    "hex": "#020346"
+  },
+  {
+    "ire": 10,
+    "zakres": "10–20",
+    "kolor": "Light Blue",
+    "hex": "#2496FF"
+  },
+  {
+    "ire": 20,
+    "zakres": "20–42",
+    "kolor": "Dark Grey",
+    "hex": "#52524F"
+  },
+  {
+    "ire": 42,
+    "zakres": "42–48",
+    "kolor": "Bright Purple",
+    "hex": "#FE1BFE"
+  },
+  {
+    "ire": 48,
+    "zakres": "48–52",
+    "kolor": "Medium Gray",
+    "hex": "#7B7B7B"
+  },
+  {
+    "ire": 52,
+    "zakres": "52–58",
+    "kolor": "Green",
+    "hex": "#1DF438"
+  },
+  {
+    "ire": 58,
+    "zakres": "58–78",
+    "kolor": "Light Grey",
+    "hex": "#BAB8B6"
+  },
+  {
+    "ire": 78,
+    "zakres": "78–84",
+    "kolor": "Dark Yellow",
+    "hex": "#AEAF15"
+  },
+  {
+    "ire": 84,
+    "zakres": "84–94",
+    "kolor": "Yellow",
+    "hex": "#F6FF19"
+  },
+  {
+    "ire": 94,
+    "zakres": "94–100",
+    "kolor": "Orange",
+    "hex": "#FF971C"
+  },
+  {
+    "ire": 100,
+    "zakres": "100–108",
+    "kolor": "Red",
+    "hex": "#DE0E0D"
+  }
+]

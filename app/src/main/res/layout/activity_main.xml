@@ -108,11 +108,11 @@
         android:textColor="#E8EAED"
         android:textSize="13sp" />
 
-    <!-- FalseColor scale (left, draggable, with numbers) -->
+    <!-- FalseColor scale (left, draggable, with numbers, narrower) -->
     <FrameLayout
         android:id="@+id/falseColorScaleContainer"
-        android:layout_width="60dp"
-        android:layout_height="220dp"
+        android:layout_width="44dp"
+        android:layout_height="240dp"
         android:layout_gravity="start|center_vertical"
         android:layout_marginStart="70dp"
         android:background="#CC1A1A1F"

@@ -166,7 +166,7 @@ class VideoRenderer(private val view: FitSurfaceView) {
     }
 
     private fun applyFalseColor(bmp: Bitmap) {
-        // Simple heatmap: luma 0..255 -> blue->green->yellow->red
+        // Use table from falsecolor.json via FalseColorTable (IRE 0..108)
         val w = bmp.width; val h = bmp.height
         val pixels = IntArray(w * h)
         bmp.getPixels(pixels, 0, w, 0, 0, w, h)
@@ -174,12 +174,7 @@ class VideoRenderer(private val view: FitSurfaceView) {
             val c = pixels[i]
             val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
             val luma = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255)
-            val fc = when {
-                luma < 64 -> Color.rgb(0, luma * 4, 255) // black->blue
-                luma < 128 -> Color.rgb(0, 255, 255 - (luma - 64) * 4) // blue->green
-                luma < 192 -> Color.rgb((luma - 128) * 4, 255, 0) // green->yellow
-                else -> Color.rgb(255, 255 - (luma - 192) * 2, 0) // yellow->red
-            }
+            val fc = FalseColorTable.lumaToColor(luma)
             pixels[i] = 0xFF000000.toInt() or (fc and 0x00FFFFFF)
         }
         bmp.setPixels(pixels, 0, w, 0, 0, w, h)
