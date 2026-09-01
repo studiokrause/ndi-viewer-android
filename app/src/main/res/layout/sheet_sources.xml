@@ -2,17 +2,34 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="#141419"
+    android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/sources"
-        android:textColor="#E8EAED"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/sources"
+            android:textColor="#E8EAED"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/refresh"
+            android:src="@drawable/ic_refresh"
+            android:tint="#E8EAED" />
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -22,13 +39,15 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/sourceList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false" />
 
         <TextView
             android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="bottom|center_horizontal"
+            android:paddingBottom="12dp"
             android:text="@string/searching"
             android:textColor="#9AA0A6"
             android:textSize="14sp" />
@@ -61,7 +80,7 @@
             android:textColor="#8AB4F8" />
     </LinearLayout>
 
-<CheckBox
+    <CheckBox
         android:id="@+id/chkLowBandwidth"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

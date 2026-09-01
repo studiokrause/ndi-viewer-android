@@ -45,24 +45,6 @@ class FitSurfaceView @JvmOverloads constructor(
         setMeasuredDimension(vw, vh)
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        val pw = right - left
-        val ph = bottom - top
-        val a = videoAspect
-        if (a <= 0f || pw <= 0 || ph <= 0) {
-            super.onLayout(changed, left, top, right, bottom)
-            return
-        }
-        var vw = pw
-        var vh = (pw / a).roundToInt()
-        if (vh > ph) {
-            vh = ph
-            vw = (ph * a).roundToInt()
-        }
-        val l = (pw - vw) / 2
-        val t = (ph - vh) / 2
-        super.onLayout(changed, l, t, l + vw, t + vh)
-    }
 }
 
 class VideoRenderer(private val view: FitSurfaceView) {

@@ -18,6 +18,11 @@ app/src/main/obj/
 
 # Screenshots / temp
 screen*.png
+check*.png
+*check.png
+sheet*.png
+lang.png
+clean.png
 *.hprof
 
 # OS

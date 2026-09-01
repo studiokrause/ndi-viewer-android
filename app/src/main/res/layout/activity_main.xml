@@ -14,7 +14,8 @@
         <com.lekozaur.ndiviewer.FitSurfaceView
             android:id="@+id/surface"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
     </FrameLayout>
 
     <TextView
@@ -33,9 +34,18 @@
         android:layout_gravity="top"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
+        android:paddingStart="8dp"
         android:paddingTop="20dp"
         android:paddingEnd="8dp">
+
+        <ImageButton
+            android:id="@+id/btnLang"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/language"
+            android:src="@drawable/ic_language"
+            android:tint="#E8EAED" />
 
         <TextView
             android:id="@+id/statusChip"
@@ -44,6 +54,7 @@
             android:layout_weight="1"
             android:background="@drawable/chip_bg"
             android:ellipsize="end"
+            android:layout_marginStart="4dp"
             android:maxLines="1"
             android:paddingStart="12dp"
             android:paddingTop="6dp"

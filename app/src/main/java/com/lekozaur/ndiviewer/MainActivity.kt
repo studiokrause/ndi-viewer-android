@@ -13,9 +13,11 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var statsText: TextView
     private lateinit var btnMute: ImageButton
     private lateinit var btnSources: ImageButton
+    private lateinit var btnLang: ImageButton
 
     private var stream: NdiStream? = null
     private var streamBandwidth = -1
@@ -42,18 +45,25 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private var multicastLock: WifiManager.MulticastLock? = null
     private var sourceAdapter: SourceAdapter? = null
     private var sheetEmptyView: TextView? = null
+    private var sheetRefreshBtn: ImageButton? = null
 
     @Volatile
     private var bandwidth = NdiStream.BANDWIDTH_HIGHEST
 
     private var muted = false
     private var nativeReady = false
+    @Volatile
+    private var isConnected = false
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { setUiVisibleInternal(false) }
     private val showUiRunnable = Runnable { setUiVisibleInternal(true) }
     private val uiHideDelayMs = 3000L
     private val uiVisible = java.util.concurrent.atomic.AtomicBoolean(true)
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.wrapContext(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +77,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         statsText = findViewById(R.id.statsText)
         btnMute = findViewById(R.id.btnMute)
         btnSources = findViewById(R.id.btnSources)
+        btnLang = findViewById(R.id.btnLang)
         renderer = VideoRenderer(surface)
 
         try {
@@ -81,6 +92,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
 
         statusText.text = getString(R.string.status_init)
         statusChip.text = getString(R.string.status_init)
+        updateLangButton()
 
         thread(name = "ndi-init") {
             val ok = try {
@@ -107,6 +119,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             if (nativeReady) openSources()
         }
         btnMute.setOnClickListener { toggleMute() }
+        btnLang.setOnClickListener { showLanguageMenu(it) }
 
         // Touch to hide/show UI
         surface.setOnTouchListener { _, event ->
@@ -123,6 +136,38 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
     }
 
+    private fun updateLangButton() {
+        val lang = LocaleHelper.getLang(this)
+        btnLang.contentDescription = "${getString(R.string.language)}: ${LocaleHelper.NAMES[lang]}"
+    }
+
+    private fun showLanguageMenu(anchor: View) {
+        val wrapper = ContextThemeWrapper(this, R.style.Theme_NDIViewer)
+        val popup = PopupMenu(wrapper, anchor)
+        LocaleHelper.SUPPORTED.forEachIndexed { idx, code ->
+            val name = when (code) {
+                "pl" -> "Polski"
+                "en" -> "English"
+                "de" -> "Deutsch"
+                "es" -> "Español"
+                "it" -> "Italiano"
+                "fr" -> "Français"
+                else -> code.uppercase()
+            }
+            val label = "${LocaleHelper.NAMES[code]} — $name"
+            popup.menu.add(0, idx, idx, label)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            val code = LocaleHelper.SUPPORTED[item.itemId]
+            if (code != LocaleHelper.getLang(this)) {
+                LocaleHelper.setLang(this, code)
+                recreate()
+            }
+            true
+        }
+        popup.show()
+    }
+
     private fun showUi() {
         uiHandler.removeCallbacks(hideUiRunnable)
         uiHandler.post(showUiRunnable)
@@ -137,10 +182,17 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         uiVisible.set(visible)
         val vis = if (visible) View.VISIBLE else View.GONE
         statusChip.visibility = vis
-        statusText.visibility = vis
+        statusText.visibility = if (visible && !isConnected) View.VISIBLE else View.GONE
+        // when connected, statusText always GONE; when not connected and visible, show hint
+        if (visible && !isConnected) {
+            statusText.visibility = View.VISIBLE
+        } else if (!visible) {
+            statusText.visibility = View.GONE
+        }
         statsText.visibility = vis
         btnMute.visibility = vis
         btnSources.visibility = vis
+        btnLang.visibility = vis
         if (visible) {
             uiHandler.removeCallbacks(hideUiRunnable)
             uiHandler.postDelayed(hideUiRunnable, uiHideDelayMs)
@@ -161,8 +213,10 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         val empty = v.findViewById<TextView>(R.id.emptyText)
         val edit = v.findViewById<EditText>(R.id.editUrl)
         val lowBw = v.findViewById<CheckBox>(R.id.chkLowBandwidth)
+        val btnRefresh = v.findViewById<ImageButton>(R.id.btnRefresh)
 
         sheetEmptyView = empty
+        sheetRefreshBtn = btnRefresh
         sourceAdapter = SourceAdapter { src ->
             bandwidth = if (lowBw.isChecked) NdiStream.BANDWIDTH_LOWEST else NdiStream.BANDWIDTH_HIGHEST
             connectTo(src)
@@ -170,6 +224,12 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = sourceAdapter
+        // ensure list starts at top
+        list.layoutManager?.scrollToPosition(0)
+
+        btnRefresh.setOnClickListener {
+            refreshSources()
+        }
 
         v.findViewById<Button>(R.id.btnManual).setOnClickListener {
             val raw = edit.text.toString().trim()
@@ -187,21 +247,38 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             finder?.stop()
             finder = null
             sheetEmptyView = null
+            sheetRefreshBtn = null
             sourceAdapter = null
         }
         sheet = d
         d.show()
 
+        startFinder()
+
+        sheetEmptyView?.text = getString(R.string.searching)
+    }
+
+    private fun startFinder() {
+        finder?.stop()
         finder = NdiFinder { sources ->
             runOnUiThread {
                 if (sheet == null) return@runOnUiThread
                 sourceAdapter?.submit(sources)
-                sheetEmptyView?.text =
-                    if (sources.isEmpty()) getString(R.string.searching) else ""
+                // keep list at top when new data arrives
+                if (sources.isNotEmpty()) {
+                    sheetEmptyView?.text = ""
+                } else {
+                    sheetEmptyView?.text = getString(R.string.searching)
+                }
             }
         }?.also { it.start() }
+    }
 
+    private fun refreshSources() {
         sheetEmptyView?.text = getString(R.string.searching)
+        sourceAdapter?.submit(emptyList())
+        startFinder()
+        Toast.makeText(this, getString(R.string.refresh), Toast.LENGTH_SHORT).show()
     }
 
     private fun normalizeUrl(raw: String): String {
@@ -226,6 +303,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         renderer.clear()
         muted = false
         updateMuteIcon()
+        isConnected = false
         statusText.visibility = View.VISIBLE
         statusText.text = getString(R.string.status_connecting, src.name)
         statusChip.text = getString(R.string.status_connecting, src.name)
@@ -247,15 +325,27 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
 
     override fun onFrame(buf: ByteBuffer, f: NdiVideoFrame) {
         renderer.onFrame(buf, f)
+        // Fallback: if we receive video, we are connected — fix stuck "Łączenie"
+        if (!isConnected) {
+            runOnUiThread {
+                if (!isConnected) {
+                    isConnected = true
+                    statusText.visibility = View.GONE
+                    statusChip.text = getString(R.string.status_live)
+                }
+            }
+        }
     }
 
     override fun onConnection(connected: Boolean) {
         runOnUiThread {
+            isConnected = connected
             if (connected) {
                 statusText.visibility = View.GONE
                 statusChip.text = getString(R.string.status_live)
             } else {
-                statusText.visibility = View.VISIBLE
+                // only show statusText if UI is visible
+                if (uiVisible.get()) statusText.visibility = View.VISIBLE else statusText.visibility = View.GONE
                 statusText.text = getString(R.string.status_no_signal)
                 statusChip.text = getString(R.string.status_no_signal)
             }
@@ -264,6 +354,12 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
 
     override fun onStats(s: NdiStreamStats) {
         runOnUiThread {
+            // also fix stuck connecting via stats
+            if (!isConnected && s.connections > 0 && s.width > 0) {
+                isConnected = true
+                statusText.visibility = View.GONE
+                statusChip.text = getString(R.string.status_live)
+            }
             if (s.connections > 0 && s.width > 0) {
                 statsText.text = getString(
                     R.string.stats_fmt,

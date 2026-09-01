@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NDI Viewer</string>
+    <string name="sources">Sources NDI</string>
+    <string name="mute">Muet</string>
+    <string name="language">Langue</string>
+    <string name="refresh">Actualiser</string>
+    <string name="status_init">Initialisation NDI…</string>
+    <string name="status_init_failed">Échec de l’initialisation NDI (matériel non pris en charge ?)</string>
+    <string name="status_no_source">Sélectionnez une source NDI (icône liste en haut)</string>
+    <string name="status_idle">Non connecté</string>
+    <string name="status_connecting">Connexion : %1$s…</string>
+    <string name="status_live">● EN DIRECT</string>
+    <string name="status_no_signal">Pas de signal — vérifiez l’émetteur</string>
+    <string name="searching">Recherche de sources NDI…</string>
+    <string name="manual_hint">Manuel : IP[:port], ex. 192.168.1.20:5961</string>
+    <string name="manual_connect">Connecter</string>
+    <string name="low_bandwidth">Mode économie (résolution réduite — Wi-Fi)</string>
+    <string name="stats_fmt">%1$d×%2$dp • %3$s fps (%4$.1f réel) • drop %5$d • conn %6$d</string>
+</resources>

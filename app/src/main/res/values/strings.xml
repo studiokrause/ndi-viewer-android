@@ -3,6 +3,8 @@
     <string name="app_name">NDI Viewer</string>
     <string name="sources">Źródła NDI</string>
     <string name="mute">Wycisz</string>
+    <string name="language">Język</string>
+    <string name="refresh">Odśwież</string>
     <string name="status_init">Inicjalizacja NDI…</string>
     <string name="status_init_failed">Nie udało się zainicjować NDI (sprzęt nieobsługiwany?)</string>
     <string name="status_no_source">Wybierz źródło NDI (ikona listy u góry)</string>
