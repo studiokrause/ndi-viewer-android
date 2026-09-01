@@ -77,6 +77,9 @@ class NdiStream(
         connected = false
     }
 
+    private val FRAME_ERROR = 4
+    private var lastDecoderErrorMs = 0L
+
     private fun videoLoop() {
         while (running) {
             val buf = try {
@@ -87,6 +90,24 @@ class NdiStream(
             }
             if (frame.frameType == FRAME_VIDEO && buf != null) {
                 listener.onFrame(buf, frame)
+            } else if (frame.frameType == FRAME_ERROR) {
+                // Unsupported / compressed FourCC (HX, SpeedHQ, etc.)
+                val now = System.currentTimeMillis()
+                if (now - lastDecoderErrorMs > 5000) {
+                    lastDecoderErrorMs = now
+                    val fc = frame.fourcc
+                    val fcStr = String(byteArrayOf(
+                        (fc and 0xFF).toByte(),
+                        ((fc shr 8) and 0xFF).toByte(),
+                        ((fc shr 16) and 0xFF).toByte(),
+                        ((fc shr 24) and 0xFF).toByte()
+                    )).replace(Regex("[^ -~]"), "?")
+                    listener.onError(
+                        "Video decoder not found (FourCC=$fcStr / $fc, ${frame.xres}x${frame.yres}). " +
+                        "To źródło używa kompresji NDI|HX / SpeedHQ — nieobsługiwane na tym urządzeniu. " +
+                        "Przełącz nadajnik na Full NDI (np. NDI Screen Capture → Full NDI) lub ustaw wyższą przepustowość."
+                    )
+                }
             }
             if (frame.frameType == FRAME_STATUS_CHANGE || frame.frameType == FRAME_SOURCE_CHANGE) {
                 checkConnection()

@@ -21,9 +21,10 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import android.app.Dialog
+import android.view.Gravity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private var stream: NdiStream? = null
     private var streamBandwidth = -1
     private var finder: NdiFinder? = null
-    private var sheet: BottomSheetDialog? = null
+    private var sheet: Dialog? = null
     private var multicastLock: WifiManager.MulticastLock? = null
     private var sourceAdapter: SourceAdapter? = null
     private var sheetEmptyView: TextView? = null
@@ -250,8 +251,13 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             sheet?.dismiss()
         }
 
-        val d = BottomSheetDialog(this)
+        val d = Dialog(this)
         d.setContentView(v)
+        d.window?.let { w ->
+            w.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
+            w.setGravity(Gravity.TOP)
+            w.setBackgroundDrawableResource(android.R.color.transparent)
+        }
         d.setOnDismissListener {
             sheet = null
             finder?.stop()

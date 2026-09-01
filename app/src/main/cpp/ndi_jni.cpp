@@ -82,6 +82,72 @@ static void uyvyToRgba(const NDIlib_video_frame_v2_t& v, uint8_t* dst) {
     }
 }
 
+static inline uint8_t clampU8(float f) {
+    return (uint8_t)(f < 0.f ? 0.f : (f > 255.f ? 255.f : f));
+}
+
+// Generic YUV -> RGB (BT.709 limited) helper: Y 16-235, U/V 16-240 centered at 128
+static void yuvToRgb(float y, float u, float v, uint8_t* out) {
+    const float yy = y - 16.0f;
+    const float uu = u - 128.0f;
+    const float vv = v - 128.0f;
+    out[0] = clampU8(1.1644f * yy + 1.7927f * vv);
+    out[1] = clampU8(1.1644f * yy - 0.2132f * uu - 0.5329f * vv);
+    out[2] = clampU8(1.1644f * yy + 2.1124f * uu);
+    out[3] = 255;
+}
+
+// I420: Y plane w*h, then U plane w/2*h/2, then V plane w/2*h/2
+static void i420ToRgba(const NDIlib_video_frame_v2_t& v, uint8_t* dst) {
+    const int w = v.xres;
+    const int h = v.yres;
+    const uint8_t* yPlane = v.p_data;
+    const uint8_t* uPlane = yPlane + (size_t)w * h;
+    const uint8_t* vPlane = uPlane + (size_t)(w/2) * (h/2);
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            const uint8_t yy = yPlane[y * w + x];
+            const uint8_t uu = uPlane[(y/2) * (w/2) + (x/2)];
+            const uint8_t vv = vPlane[(y/2) * (w/2) + (x/2)];
+            yuvToRgb((float)yy, (float)uu, (float)vv, dst + ((size_t)y * w + x) * 4);
+        }
+    }
+}
+
+// YV12: Y, then V, then U (order swapped vs I420)
+static void yv12ToRgba(const NDIlib_video_frame_v2_t& v, uint8_t* dst) {
+    const int w = v.xres;
+    const int h = v.yres;
+    const uint8_t* yPlane = v.p_data;
+    const uint8_t* vPlane = yPlane + (size_t)w * h;
+    const uint8_t* uPlane = vPlane + (size_t)(w/2) * (h/2);
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            const uint8_t yy = yPlane[y * w + x];
+            const uint8_t uu = uPlane[(y/2) * (w/2) + (x/2)];
+            const uint8_t vv = vPlane[(y/2) * (w/2) + (x/2)];
+            yuvToRgb((float)yy, (float)uu, (float)vv, dst + ((size_t)y * w + x) * 4);
+        }
+    }
+}
+
+// NV12: Y plane w*h, then interleaved UV plane w*h/2 (UV interleaved)
+static void nv12ToRgba(const NDIlib_video_frame_v2_t& v, uint8_t* dst) {
+    const int w = v.xres;
+    const int h = v.yres;
+    const uint8_t* yPlane = v.p_data;
+    const uint8_t* uvPlane = yPlane + (size_t)w * h;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            const uint8_t yy = yPlane[y * w + x];
+            const int uvIndex = (y/2) * w + (x/2) * 2;
+            const uint8_t uu = uvPlane[uvIndex + 0];
+            const uint8_t vv = uvPlane[uvIndex + 1];
+            yuvToRgb((float)yy, (float)uu, (float)vv, dst + ((size_t)y * w + x) * 4);
+        }
+    }
+}
+
 // ---------------------------------------------------------------- receiver object
 
 struct VideoOut {
@@ -467,6 +533,13 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject, j
     }
 
     uint8_t* dst = R->vout.data[R->vout.idx].data();
+    // Helper to print FourCC as chars for logging
+    auto fourccStr = [](int f) -> std::string {
+        char c[5] = {(char)(f & 0xFF), (char)((f>>8)&0xFF), (char)((f>>16)&0xFF), (char)((f>>24)&0xFF), 0};
+        for (int i=0;i<4;i++) if (c[i] < 32 || c[i] > 126) c[i]='?';
+        return std::string(c);
+    };
+    bool handled = true;
     switch (v.FourCC) {
         case NDIlib_FourCC_video_type_RGBA:
         case NDIlib_FourCC_video_type_RGBX:
@@ -479,11 +552,34 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject, j
         case NDIlib_FourCC_video_type_UYVY:
             uyvyToRgba(v, dst);
             break;
+        case NDIlib_FourCC_video_type_I420:
+            i420ToRgba(v, dst);
+            break;
+        case NDIlib_FourCC_video_type_YV12:
+            yv12ToRgba(v, dst);
+            break;
+        case NDIlib_FourCC_video_type_NV12:
+            nv12ToRgba(v, dst);
+            break;
+        case NDIlib_FourCC_video_type_UYVA:
+            // UYVA = UYVY + trailing alpha plane - just render YUV part
+            uyvyToRgba(v, dst);
+            break;
         default:
-            LOGW("unsupported FourCC: %d", (int)v.FourCC);
-            NDIlib_recv_free_video_v2(R->recv, &v);
-            env->SetIntField(holder, gFid.frameType, (jint)NDIlib_frame_type_none);
-            return nullptr;
+            handled = false;
+            break;
+    }
+    if (!handled) {
+        // Check if it's a known compressed FourCC (HX/SpeedHQ)
+        std::string fc = fourccStr((int)v.FourCC);
+        LOGW("unsupported FourCC: %d (%s) - likely compressed HX/SpeedHQ", (int)v.FourCC, fc.c_str());
+        // Store error info in holder so Java can show user-friendly message
+        env->SetIntField(holder, gFid.frameType, (jint)NDIlib_frame_type_error);
+        env->SetIntField(holder, gFid.fourcc, (jint)v.FourCC);
+        env->SetIntField(holder, gFid.xres, v.xres);
+        env->SetIntField(holder, gFid.yres, v.yres);
+        NDIlib_recv_free_video_v2(R->recv, &v);
+        return nullptr;
     }
 
     const jobject out = R->vout.bb[R->vout.idx];
