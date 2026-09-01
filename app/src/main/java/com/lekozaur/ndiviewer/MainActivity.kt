@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var btnMute: ImageButton
     private lateinit var btnSources: ImageButton
     private lateinit var btnLang: ImageButton
+    private lateinit var leftBar: View
 
     private var stream: NdiStream? = null
     private var streamBandwidth = -1
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnMute = findViewById(R.id.btnMute)
         btnSources = findViewById(R.id.btnSources)
         btnLang = findViewById(R.id.btnLang)
+        leftBar = findViewById(R.id.leftBar)
         renderer = VideoRenderer(surface)
 
         try {
@@ -108,9 +110,11 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
                 if (ok) {
                     statusText.text = getString(R.string.status_no_source)
                     statusChip.text = getString(R.string.status_idle)
+                    updateStatusChip(false)
                 } else {
                     statusText.text = getString(R.string.status_init_failed)
                     statusChip.text = getString(R.string.status_init_failed)
+                    updateStatusChip(false)
                 }
             }
         }
@@ -182,22 +186,28 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         uiVisible.set(visible)
         val vis = if (visible) View.VISIBLE else View.GONE
         statusChip.visibility = vis
-        statusText.visibility = if (visible && !isConnected) View.VISIBLE else View.GONE
-        // when connected, statusText always GONE; when not connected and visible, show hint
         if (visible && !isConnected) {
             statusText.visibility = View.VISIBLE
-        } else if (!visible) {
+        } else {
             statusText.visibility = View.GONE
         }
         statsText.visibility = vis
-        btnMute.visibility = vis
-        btnSources.visibility = vis
-        btnLang.visibility = vis
+        leftBar.visibility = vis
         if (visible) {
             uiHandler.removeCallbacks(hideUiRunnable)
             uiHandler.postDelayed(hideUiRunnable, uiHideDelayMs)
         } else {
             uiHandler.removeCallbacks(hideUiRunnable)
+        }
+    }
+
+    private fun updateStatusChip(isLive: Boolean) {
+        if (isLive) {
+            statusChip.setBackgroundResource(R.drawable.chip_live_bg)
+            statusChip.setTextColor(0xFFFFFFFF.toInt())
+        } else {
+            statusChip.setBackgroundResource(R.drawable.chip_bg)
+            statusChip.setTextColor(0xFFE8EAED.toInt())
         }
     }
 
@@ -304,6 +314,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         muted = false
         updateMuteIcon()
         isConnected = false
+        updateStatusChip(false)
         statusText.visibility = View.VISIBLE
         statusText.text = getString(R.string.status_connecting, src.name)
         statusChip.text = getString(R.string.status_connecting, src.name)
@@ -332,6 +343,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
                     isConnected = true
                     statusText.visibility = View.GONE
                     statusChip.text = getString(R.string.status_live)
+                    updateStatusChip(true)
                 }
             }
         }
@@ -343,11 +355,13 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             if (connected) {
                 statusText.visibility = View.GONE
                 statusChip.text = getString(R.string.status_live)
+                updateStatusChip(true)
             } else {
                 // only show statusText if UI is visible
                 if (uiVisible.get()) statusText.visibility = View.VISIBLE else statusText.visibility = View.GONE
                 statusText.text = getString(R.string.status_no_signal)
                 statusChip.text = getString(R.string.status_no_signal)
+                updateStatusChip(false)
             }
         }
     }
@@ -359,6 +373,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
                 isConnected = true
                 statusText.visibility = View.GONE
                 statusChip.text = getString(R.string.status_live)
+                updateStatusChip(true)
             }
             if (s.connections > 0 && s.width > 0) {
                 statsText.text = getString(
