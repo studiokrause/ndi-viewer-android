@@ -99,6 +99,19 @@ Wynik: `app/build/outputs/apk/debug/app-debug.apk`.
 Podmień JDK 17 w `gradle.properties` (`org.gradle.java.home`) na właściwy
 katalog, jeśli inny.
 
+## Visual Helpers — BETA (branch `visual-helpers`, v0.6.0-beta)
+
+> **BETA** — funkcje eksperymentalne, mogą obniżyć FPS na 4K. Branch `visual-helpers` nie jest mergowany do `main`.
+
+- **False Color** (`VideoRenderer.falseColorEnabled`, `btnFalseColor` w lewym pasku): heatmap luma `0→64` niebieski, `64→128` cyan→zielony, `128→192` zielony→żółty, `192→255` żółty→czerwony (`applyFalseColor` per-pixel `getPixels/setPixels`). Toggle, alpha ikony `1.0`/`0.5`.
+- **Histogram** (`HistogramView` + `histogramContainer`): overlay `160×100dp`, `R/G/B/L` log-scale, draggable (`onTouch` `ACTION_DOWN/MOVE` → `View.animate().x/y`), regulacja **wielkości** `SeekBar Size 0.6×–2.0×` i **przezroczystości** `SeekBar Alpha 0.2–1.0` (kontener `alpha`, controls `alpha`). Danych dostarcza `VideoRenderer.histogramCallback` (co 4. piksel). Toggle `btnHistogram` → `VISIBLE/GONE`.
+
+Build z brancha:
+```bat
+git checkout visual-helpers
+gradlew.bat --no-daemon assembleDebug
+```
+
 ## Wskaźnik dekodowania (v0.5)
 
 Lista źródeł pokazuje po prawej stronie nazwy kolorowe kółko:
