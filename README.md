@@ -13,15 +13,17 @@ app/
 │   ├── jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/libndi.so   ← NDI SDK
 │   ├── cpp/
 │   │   ├── CMakeLists.txt
-│   │   ├── ndi_jni.cpp                                       ← natywny most JNI
-│   │   └── ndi/Processing.NDI.*.h                            ← nagłówki NDI
+│   │   ├── ndi_jni.cpp                           ← natywny most JNI (+ I420/YV12/NV12)
+│   │   └── ndi/Processing.NDI.*.h                ← nagłówki NDI
 │   └── java/com/lekozaur/ndiviewer/
+│       ├── DecodeStatus.kt / SourceProbe.kt      ← klasyfikacja + probe HX vs Full NDI
 │       ├── NdiNative.kt   (JNI surface: NdiFinderJni, NdiReceiverJni, NdiNative)
 │       ├── NdiFinder.kt   (wątek discovery: wait_for_sources + get_current_sources)
 │       ├── NdiStream.kt   (wątki wideo + statystyk + orkiestracja JNI)
 │       ├── VideoRenderer.kt (FitSurfaceView, podwójny bufor bitmap, aspect-fit)
-│       ├── SourceAdapter.kt (RecyclerView dla listy źródeł)
-│       └── MainActivity.kt (UI: Sources w BottomSheet, mute, stats, immersive)
+│       ├── SourceAdapter.kt (RecyclerView + dot zielony/żółty/czerwony)
+│       ├── LocaleHelper.kt (PL/EN/DE/ES/IT/FR)
+│       └── MainActivity.kt (UI: top sheet, lewy pionowy pasek, LIVE red chip)
 ```
 
 ### Przepływ danych
@@ -97,12 +99,21 @@ Wynik: `app/build/outputs/apk/debug/app-debug.apk`.
 Podmień JDK 17 w `gradle.properties` (`org.gradle.java.home`) na właściwy
 katalog, jeśli inny.
 
+## Wskaźnik dekodowania (v0.5)
+
+Lista źródeł pokazuje po prawej stronie nazwy kolorowe kółko:
+
+| Kolor | Znaczenie | FourCC |
+|-------|-----------|--------|
+| 🟢 Zielony | **Na pewno zdekoduje** — pełne Full NDI, uncompressed (`UYVY`, `UYVA`, `RGBA/BGRA` + `I420/YV12/NV12`) obsługiwane natywnie w `ndi_jni.cpp` (`uyvyToRgba`/`i420ToRgba`/… → `RGBA`). |
+| 🟡 Żółty | **Być może** — nieznany format lub brak klatki w próbie 2.7 s (np. `P216/PA16` 16-bit, lub timeout). Worth spróbować. |
+| 🔴 Czerwony | **Na pewno nie** — kompresja `NDI|HX / H.264/H.265/SpeedHQ` (`H264/H265/AVC1/HEVC/SHQ0-7`). Wymaga dekodera sprzętowego, który na tym urządzeniu nie istnieje. Przełącz nadajnik na **Full NDI** (NDI Screen Capture → Full NDI, OBS NDI → Main profile). |
+
+Heurystyka przed próbą: nazwa zawierająca `HX`, `H264`, `H265`, `SpeedHQ`, `HEVC`, `AVC` → od razu 🔴. W przeciwnym razie każdy nowy wpis jest probowany w tle przez `SourceProbe` (tworzy tymczasowy `NdiReceiverJni`, łączy się na ~900 ms ×3, klasyfikuje `FourCC` via `DecodeClassifier`, aktualizuje `SourceAdapter` przez `updateStatus`).
+
 ## Ograniczenia / TODO
 
-- Brak wsparcia dla H.264/NDI-HX (kodeki kompresowane w `p_data` są pomijane
-  przez wrapper — obsługiwane są tylko nieskompresowane formaty z rodziny
-  YCbCr/RGB). Do pełnego wsparcia H.264/H.265 wymagany dodatkowy dekoder (np.
-  libavcodec).
+- H.264/NDI-HX w trybie 🔴 wymaga zewnętrznego dekodera (MediaCodec `H264` lub `libavcodec`) — obecnie wykrywane i zgłaszane jako `Video decoder not found (FourCC=H264 ...)` zamiast czarnego ekranu. Dla `I420/YV12/NV12` (częsty fallback dekodera HX gdy dostępny) dodano już konwersję `BT.709`.
 - Brak 16-KB page alignment w `libndi.so` z SDK v6.3.2 — Google Play wymaga tego
   od nowych aplikacji od XI 2025. Wymaga przebudowy SDK ze źródeł lub aktualizacji
   NDI SDK.

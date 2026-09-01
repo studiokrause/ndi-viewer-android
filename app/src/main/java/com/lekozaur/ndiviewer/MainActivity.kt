@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private var sourceAdapter: SourceAdapter? = null
     private var sheetEmptyView: TextView? = null
     private var sheetRefreshBtn: ImageButton? = null
+    private val probedUrls = mutableSetOf<String>()
 
     @Volatile
     private var bandwidth = NdiStream.BANDWIDTH_HIGHEST
@@ -269,6 +270,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         sheet = d
         d.show()
 
+        probedUrls.clear()
         startFinder()
 
         sheetEmptyView?.text = getString(R.string.searching)
@@ -280,9 +282,18 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             runOnUiThread {
                 if (sheet == null) return@runOnUiThread
                 sourceAdapter?.submit(sources)
-                // keep list at top when new data arrives
                 if (sources.isNotEmpty()) {
                     sheetEmptyView?.text = ""
+                    // Probe each source for decode capability (green/yellow/red dot)
+                    for (src in sources) {
+                        if (probedUrls.contains(src.url)) continue
+                        probedUrls.add(src.url)
+                        SourceProbe.probe(src) { status ->
+                            runOnUiThread {
+                                sourceAdapter?.updateStatus(src.url, status)
+                            }
+                        }
+                    }
                 } else {
                     sheetEmptyView?.text = getString(R.string.searching)
                 }
@@ -293,6 +304,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private fun refreshSources() {
         sheetEmptyView?.text = getString(R.string.searching)
         sourceAdapter?.submit(emptyList())
+        probedUrls.clear()
         startFinder()
         Toast.makeText(this, getString(R.string.refresh), Toast.LENGTH_SHORT).show()
     }
