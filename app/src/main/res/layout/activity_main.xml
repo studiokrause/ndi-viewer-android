@@ -108,6 +108,23 @@
         android:textColor="#E8EAED"
         android:textSize="13sp" />
 
+    <!-- FalseColor scale (left, draggable, with numbers) -->
+    <FrameLayout
+        android:id="@+id/falseColorScaleContainer"
+        android:layout_width="60dp"
+        android:layout_height="220dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="70dp"
+        android:background="#CC1A1A1F"
+        android:elevation="6dp"
+        android:visibility="gone">
+
+        <com.lekozaur.ndiviewer.FalseColorScaleView
+            android:id="@+id/falseColorScaleView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
     <!-- Draggable histogram overlay -->
     <FrameLayout
         android:id="@+id/histogramContainer"

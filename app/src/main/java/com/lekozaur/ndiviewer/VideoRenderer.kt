@@ -105,12 +105,11 @@ class VideoRenderer(private val view: FitSurfaceView) {
         buf.rewind()
         try {
             bmp.copyPixelsFromBuffer(buf)
-            if (falseColorEnabled) applyFalseColor(bmp)
-            // compute histogram for overlay (sample every 4th pixel for performance)
+            // compute histogram BEFORE falsecolor so it shows original luma
             histogramCallback?.let { cb ->
-                // run on copy to avoid blocking draw
                 try { computeHistogram(bmp, cb) } catch (_: Throwable) {}
             }
+            if (falseColorEnabled) applyFalseColor(bmp)
         } catch (_: Throwable) {
             return
         }
