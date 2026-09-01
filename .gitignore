@@ -1,0 +1,25 @@
+# Gradle / Android
+.gradle/
+build/
+app/build/
+.kotlin/
+local.properties
+*.iml
+.idea/
+captures/
+
+# NDK / CMake
+app/.cxx/
+app/src/main/obj/
+
+# Keystores
+*.jks
+*.keystore
+
+# Screenshots / temp
+screen*.png
+*.hprof
+
+# OS
+.DS_Store
+Thumbs.db

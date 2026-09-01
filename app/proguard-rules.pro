@@ -1,0 +1,3 @@
+-keep class com.lekozaur.ndiviewer.NdiNative { *; }
+-keep class com.lekozaur.ndiviewer.NdiFinderJni { *; }
+-keep class com.lekozaur.ndiviewer.NdiReceiverJni { *; }

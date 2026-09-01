@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NDI Viewer</string>
+    <string name="sources">Źródła NDI</string>
+    <string name="mute">Wycisz</string>
+    <string name="status_init">Inicjalizacja NDI…</string>
+    <string name="status_init_failed">Nie udało się zainicjować NDI (sprzęt nieobsługiwany?)</string>
+    <string name="status_no_source">Wybierz źródło NDI (ikona listy u góry)</string>
+    <string name="status_idle">Bez połączenia</string>
+    <string name="status_connecting">Łączenie: %1$s…</string>
+    <string name="status_live">● NA ŻYWO</string>
+    <string name="status_no_signal">Brak sygnału — sprawdź nadajnik</string>
+    <string name="searching">Szukam źródeł NDI w sieci…</string>
+    <string name="manual_hint">Ręcznie: IP[:port], np. 192.168.1.20:5961</string>
+    <string name="manual_connect">Połącz</string>
+    <string name="low_bandwidth">Tryb oszczędny (mniejsza rozdzielczość — Wi-Fi)</string>
+    <string name="stats_fmt">%1$d×%2$dp • %3$s fps (%4$.1f real) • drop %5$d • conn %6$d</string>
+</resources>

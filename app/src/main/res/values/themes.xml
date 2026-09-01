@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#0B0F14</color>
+    <color name="accent">#2CE5C4</color>
+    <style name="Theme.NDIViewer" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">#04110E</item>
+    </style>
+</resources>
