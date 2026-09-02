@@ -1,6 +1,6 @@
 # NDI Viewer for Android
 
-A minimal, standalone NDIT« receiver for Android based on the NewTek/Vizrt NDI SDK
+A minimal, standalone NDIÂ® receiver for Android based on the NewTek/Vizrt NDI SDK
 (`v6.3.2.0`). It detects NDI sources on the network (mDNS), displays video with audio,
 and allows manual connection using `IP[:port]`.
 
@@ -8,56 +8,56 @@ and allows manual connection using `IP[:port]`.
 
 ```
 app/
-ÔöÔöÇÔöÇ src/main/
-Ôöé   ÔöÔöÇÔöÇ AndroidManifest.xml
-Ôöé   ÔöÔöÇÔöÇ jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/libndi.so   ÔæÉ NDI SDK
-Ôöé   ÔöÔöÇÔöÇ cpp/
-Ôöé   Ôöé   ÔöÔöÇÔöÇ CMakeLists.txt
-Ôöé   Ôöé   ÔöÔöÇÔöÇ ndi_jni.cpp                           ÔæÉ native JNI bridge (+ I420/YV12/NV12)
-Ôöé   Ôöé   ÔööÔöÇÔöÇ ndi/Processing.NDI.*.h                ÔæÉ NDI headers
-Ôöé   ÔööÔöÇÔöÇ java/com/lekozaur/ndiviewer/
-Ôöé       ÔöÔöÇÔöÇ DecodeStatus.kt / SourceProbe.kt      ÔæÉ classification + HX vs Full NDI probe
-Ôöé       ÔöÔöÇÔöÇ NdiNative.kt   (JNI surface: NdiFinderJni, NdiReceiverJni, NdiNative)
-Ôöé       ÔöÔöÇÔöÇ NdiFinder.kt   (discovery thread: wait_for_sources + get_current_sources)
-Ôöé       ÔöÔöÇÔöÇ NdiStream.kt   (video + statistics threads + JNI orchestration)
-Ôöé       ÔöÔöÇÔöÇ VideoRenderer.kt (FitSurfaceView, double-buffered bitmap, aspect-fit)
-Ôöé       ÔöÔöÇÔöÇ SourceAdapter.kt (RecyclerView + green/yellow/red status dot)
-Ôöé       ÔöÔöÇÔöÇ LocaleHelper.kt (PL/EN/DE/ES/IT/FR)
-Ôöé       ÔööÔöÇÔöÇ MainActivity.kt (UI: top sheet, left vertical bar, LIVE red chip)
+â”œâ”€â”€ src/main/
+â”‚   â”œâ”€â”€ AndroidManifest.xml
+â”‚   â”œâ”€â”€ jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/libndi.so   â† NDI SDK
+â”‚   â”œâ”€â”€ cpp/
+â”‚   â”‚   â”œâ”€â”€ CMakeLists.txt
+â”‚   â”‚   â”œâ”€â”€ ndi_jni.cpp                           â† native JNI bridge (+ I420/YV12/NV12)
+â”‚   â”‚   â””â”€â”€ ndi/Processing.NDI.*.h                â† NDI headers
+â”‚   â””â”€â”€ java/com/lekozaur/ndiviewer/
+â”‚       â”œâ”€â”€ DecodeStatus.kt / SourceProbe.kt      â† classification + HX vs Full NDI probe
+â”‚       â”œâ”€â”€ NdiNative.kt   (JNI surface: NdiFinderJni, NdiReceiverJni, NdiNative)
+â”‚       â”œâ”€â”€ NdiFinder.kt   (discovery thread: wait_for_sources + get_current_sources)
+â”‚       â”œâ”€â”€ NdiStream.kt   (video + statistics threads + JNI orchestration)
+â”‚       â”œâ”€â”€ VideoRenderer.kt (FitSurfaceView, double-buffered bitmap, aspect-fit)
+â”‚       â”œâ”€â”€ SourceAdapter.kt (RecyclerView + green/yellow/red status dot)
+â”‚       â”œâ”€â”€ LocaleHelper.kt (PL/EN/DE/ES/IT/FR)
+â”‚       â””â”€â”€ MainActivity.kt (UI: top sheet, left vertical bar, LIVE red chip)
 ```
 
 ### Data Flow
 
 ```
-NDI Sender ÔöÇÔöÇTCP/UDP (mDNS)ÔöÇÔöÇÔ¾¦ NDI SDK (libndi.so)
-                                   Ôöé
-                                   Ô¾-  NdiReceiverJni.capture (video thread)
-                    copy/convert: RGBA/BGRX/BGRA/UYVY Ôæå RGBA  (BT.709 limited)
-                                   Ôöé  (DirectByteBuffer, zero-copy within JNI boundaries)
-                                   Ô¾-
+NDI Sender â”€â”€TCP/UDP (mDNS)â”€â”€â–º NDI SDK (libndi.so)
+                                   â”‚
+                                   â–¼  NdiReceiverJni.capture (video thread)
+                    copy/convert: RGBA/BGRX/BGRA/UYVY â†’ RGBA  (BT.709 limited)
+                                   â”‚  (DirectByteBuffer, zero-copy within JNI boundaries)
+                                   â–¼
                             Renderer.onFrame (video thread)
                           Bitmap.copyPixelsFromBuffer (2x ping-pong)
-                                   Ôöé
-                                   Ô¾-  Choreographer ~120 Hz (UI thread)
-                            FitSurfaceView Ôæå drawBitmap aspect-fit
-                                   Ô¾-
-                                   Ôöé
+                                   â”‚
+                                   â–¼  Choreographer ~120 Hz (UI thread)
+                            FitSurfaceView â†’ drawBitmap aspect-fit
+                                   â–²
+                                   â”‚
                           Audio (native audio thread)
-                          capture_v2 audio Ôæå SPSC ring Ôæå AAudio stream (PCM float)
+                          capture_v2 audio â†’ SPSC ring â†’ AAudio stream (PCM float)
 ```
 
 ### Key Decisions
 
-- **Forced color format**: we receive using `NDIlib_recv_color_format_RGBX_RGBA` ÔÇö the SDK
+- **Forced color format**: we receive using `NDIlib_recv_color_format_RGBX_RGBA` â€” the SDK
   itself performs the down-conversion from UYVY/4:2:2 to RGBA. This maps directly to
-  `Bitmap.Config.ARGB_8888` (RGBA in memory, BEÔæåLE).
+  `Bitmap.Config.ARGB_8888` (RGBA in memory, BEâ†’LE).
 - **Fallback conversion**: if the source sends UYVY despite the preference (e.g. in
-  `fastest` mode), the wrapper performs `UYVYÔæåRGBA` (BT.709 limited, 4:2:2) in C++.
+  `fastest` mode), the wrapper performs `UYVYâ†’RGBA` (BT.709 limited, 4:2:2) in C++.
 - **Zero allocations in the hot path**: the wrapper maintains two global `DirectByteBuffer`
   instances sized `stride*height` and switches the index for each frame. In Java, two
-  `Bitmap` instances (ping-pong) receive `copyPixelsFromBuffer` ÔÇö with no GC overhead.
+  `Bitmap` instances (ping-pong) receive `copyPixelsFromBuffer` â€” with no GC overhead.
 - **Threads**: native video + audio run on two separate threads
-  (`NDIlib_recv_capture_v2` supports simultaneous calls from multiple threads ÔÇö this is
+  (`NDIlib_recv_capture_v2` supports simultaneous calls from multiple threads â€” this is
   guaranteed by the SDK). Statistics run on a third thread every 1 second.
 - **Audio**: AAudio low-latency, PCM float format, downmixes more than 2 channels to stereo
   (NDI typically provides 2/8/16 channels). The AAudio stream is restarted when the format
@@ -67,7 +67,7 @@ NDI Sender ÔöÇÔöÇTCP/UDP (mDNS)ÔöÇÔöÇÔ¾¦ NDI SDK (libndi.so)
 - **Aspect ratio**: `FitSurfaceView` calculates `onMeasure` based on
   `picture_aspect_ratio` (or `xres/yres`) and maintains letterboxing both vertically
   and horizontally.
-- **Discoverability**: mDNS requires a `MulticastLock` ÔÇö acquired when the
+- **Discoverability**: mDNS requires a `MulticastLock` â€” acquired when the
   `BottomSheetDialog` is opened and released when it is closed.
 - **Lifecycle**: the Activity's `configChanges` keeps the orientation without restarting.
   `singleTask` prevents multiple instances.
@@ -106,37 +106,51 @@ The source list displays a colored dot on the right-hand side of the name:
 
 | Color | Meaning | FourCC |
 |-------|---------|--------|
-| ­èèó Green | **Will definitely decode** ÔÇö full Full NDI, uncompressed (`UYVY`, `UYVA`, `RGBA/BGRA` + `I420/YV12/NV12`) is natively supported in `ndi_jni.cpp` (`uyvyToRgba`/`i420ToRgba`/ÔÇŽ Ôæå `RGBA`). |
-| ­èèí Yellow | **May work** ÔÇö unknown format or no frame received during the 2.7 s probe (e.g. `P216/PA16` 16-bit, or timeout). Worth trying. |
-| ­èö+ Red | **Will definitely not work** ÔÇö compressed `NDI|HX / H.264/H.265/SpeedHQ` (`H264/H265/AVC1/HEVC/SHQ0-7`). Requires a hardware decoder that does not exist on this device. Switch the sender to **Full NDI** (NDI Screen Capture Ôæå Full NDI, OBS NDI Ôæå Main profile). |
+| ðŸŸ¢ Green | **Will definitely decode** â€” full Full NDI, uncompressed (`UYVY`, `UYVA`, `RGBA/BGRA` + `I420/YV12/NV12`) is natively supported in `ndi_jni.cpp` (`uyvyToRgba`/`i420ToRgba`/â€¦ â†’ `RGBA`). |
+| ðŸŸ¡ Yellow | **May work** â€” unknown format or no frame received during the 2.7 s probe (e.g. `P216/PA16` 16-bit, or timeout). Worth trying. |
+| ðŸ”´ Red | **Will definitely not work** â€” compressed `NDI|HX / H.264/H.265/SpeedHQ` (`H264/H265/AVC1/HEVC/SHQ0-7`). Requires a hardware decoder that does not exist on this device. Switch the sender to **Full NDI** (NDI Screen Capture â†’ Full NDI, OBS NDI â†’ Main profile). |
 
 Pre-probe heuristic: a name containing `HX`, `H264`, `H265`, `SpeedHQ`, `HEVC`, or `AVC`
-is immediately marked ­èö+. Otherwise, every new entry is probed in the background by
-`SourceProbe` (creates a temporary `NdiReceiverJni`, connects for ~900 ms +Œ3,
+is immediately marked ðŸ”´. Otherwise, every new entry is probed in the background by
+`SourceProbe` (creates a temporary `NdiReceiverJni`, connects for ~900 ms Ã—3,
 classifies `FourCC` via `DecodeClassifier`, and updates `SourceAdapter` through
 `updateStatus`).
 
-## Visual Helpers — BETA (branch `visual-helpers` , v0.6.2-beta)
+## Visual Helpers - BETA (branch `visual-helpers` / `NDI-discovery`)
 
-> **BETA** — experimental features, may lower FPS on 4K. Branch `visual-helpers` is not merged into `main`.
+> **BETA** - experimental features, may lower FPS on 4K. Branch `visual-helpers` is not merged into `main`.
 
-- **False Color** (`VideoRenderer.falseColorEnabled`, `btnFalseColor` in left bar): heatmap via `FalseColorTable` (IRE 0..108 from `falsecolor.json`: 0 White #FFFFFF › 2 Blue #020346 › 10 Light Blue #2496FF › 20 Dark Grey #52524F › 42 Bright Purple #FE1BFE › 48 Medium Gray › 52 Green › 58 Light Grey › 78 Dark Yellow › 84 Yellow › 94 Orange › 100 Red #DE0E0D › maps luma 16›0 IRE, 235›100 IRE). Scale `FalseColorScaleView` 22dp (half width) with 39sp numbers, draggable. Toggle, icon alpha 1.0/0.5.
-- **Histogram** (`HistogramView` + `histogramContainer`): overlay 160×100dp, R/G/B/L log-scale, draggable (`onTouch` `ACTION_DOWN/MOVE` › `View.animate().x/y`), size `Seek Size 0.6×–2.0×` and alpha `Seek Alpha 0.2–1.0` (controls stay opaque). Data from `VideoRenderer.histogramCallback` (every 6th pixel, computed BEFORE falsecolor). Fixed empty field by sampling via `getPixel` and dummy histogram when no stream.
+- **False Color** (`VideoRenderer.falseColorEnabled`, `btnFalseColor` in left bar): heatmap via `FalseColorTable` (IRE 0..108 from `falsecolor.json`: 0 White #FFFFFF -> 2 Blue #020346 -> 10 Light Blue #2496FF -> 20 Dark Grey #52524F -> 42 Bright Purple #FE1BFE -> 48 Medium Gray -> 52 Green -> 58 Light Grey -> 78 Dark Yellow -> 84 Yellow -> 94 Orange -> 100 Red #DE0E0D, maps luma 16->0 IRE, 235->100 IRE). Scale `FalseColorScaleView` 33dp with 29sp right-justified numbers, draggable. Toggle, icon alpha 1.0/0.5. Histogram removed in v0.8.0 per request.
 
 Build from branch:
-```at
+```bat
 git checkout visual-helpers
+gradlew.bat --no-daemon assembleDebug
+```
+
+## NDI Discovery Server - BETA (branch `NDI-discovery`)
+
+> **BETA** - contains all `visual-helpers` features plus a built-in discovery server. Is it possible? **Yes, partially.**
+
+The official Vizrt NDI Discovery Server is closed-source and not part of the public SDK. On Android we emulate its core behaviour:
+
+- **What this branch does:** `NdiDiscoveryServer` (singleton) + `NdiDiscoveryService` (foreground `dataSync`, notification `NDI Discovery Server - ON`, `MulticastLock` continuously held, persistent `NdiFinder` cache, `NsdManager` advertisement `_ndi._tcp` on port 5961). Toggle via left-bar `ic_discovery` (amber when active) or via `NdiDiscoveryServer` prefs `discovery_server`. Other NDI devices on the same subnet can set `Extra IPs = <this Android IP>` or rely on mDNS; the service keeps mDNS warm and answers faster than cold discovery.
+- **Limitations vs official server:** Does not implement the proprietary TCP 5960 directory protocol. It is an mDNS reflector/cache, not a full directory. Requires `FOREGROUND_SERVICE` + `POST_NOTIFICATIONS` (Android 13+). Keeping `MulticastLock` continuously increases battery use. Cannot proxy `NDI|HX` compressed sources that need a hardware decoder. For VLANs where mDNS is filtered, still requires network multicast to be allowed.
+- **When to use:** Enable the Discovery Server toggle when you have many NDI sources and the default `BottomSheet` finder is slow or misses sources due to Android multicast throttling. It makes the source list instant (cache) and helps other receivers find sources via this device.
+
+```bat
+git checkout NDI-discovery
 gradlew.bat --no-daemon assembleDebug
 ```
 
 ## Limitations / TODO
 
-- H.264/NDI-HX in ­èö+ mode requires an external decoder (MediaCodec `H264` or
-  `libavcodec`) ÔÇö currently it is detected and reported as
+- H.264/NDI-HX in ðŸ”´ mode requires an external decoder (MediaCodec `H264` or
+  `libavcodec`) â€” currently it is detected and reported as
   `Video decoder not found (FourCC=H264 ...)` instead of showing a black screen.
   For `I420/YV12/NV12` (a common HX decoder fallback when available), `BT.709`
   conversion has already been added.
-- `libndi.so` from SDK v6.3.2 does not have 16-KB page alignment ÔÇö Google Play has
+- `libndi.so` from SDK v6.3.2 does not have 16-KB page alignment â€” Google Play has
   required this for new apps since November 2025. This requires rebuilding the SDK
   from source or upgrading the NDI SDK.
 - Audio may require minor tuning for a specific device (NDI typically uses 48 kHz,
@@ -154,15 +168,15 @@ Vizrt NDI license terms.
 
 ## Trademarks, Copyright and NDI SDK Notice
 
-NDIT« is a registered trademark of Vizrt NDI AB and is used under applicable license terms.
+NDIÂ® is a registered trademark of Vizrt NDI AB and is used under applicable license terms.
 
-This application uses the NDIT« SDK provided by Vizrt (formerly NewTek). The NDI SDK, including `libndi.so` and the associated header files, is proprietary software owned by Vizrt and/or its licensors and is subject to the **NDI SDK License Agreement**.
+This application uses the NDIÂ® SDK provided by Vizrt (formerly NewTek). The NDI SDK, including `libndi.so` and the associated header files, is proprietary software owned by Vizrt and/or its licensors and is subject to the **NDI SDK License Agreement**.
 
 This project is not affiliated with, endorsed by, sponsored by, or otherwise officially associated with Vizrt or NewTek.
 
 All trademarks, service marks, product names, logos, and company names mentioned in this project are the property of their respective owners.
 
-Copyright Tê 2026 the authors of NDI Viewer for Android - and Opencode :).
+Copyright Â© 2026 the authors of NDI Viewer for Android - and Opencode :).
 
 The source code of this application is distributed under the license specified in this repository. This license does **not** grant any rights to redistribute, modify, or otherwise use the NDI SDK beyond the rights expressly granted by the applicable NDI SDK License Agreement.
 

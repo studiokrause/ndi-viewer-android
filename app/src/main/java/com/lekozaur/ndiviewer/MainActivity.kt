@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var btnSources: ImageButton
     private lateinit var btnLang: ImageButton
     private lateinit var btnFalseColor: ImageButton
+    private lateinit var btnDiscovery: ImageButton
     private lateinit var btnAbout: ImageButton
     private lateinit var leftBar: View
     private lateinit var falseColorScaleContainer: FrameLayout
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnSources = findViewById(R.id.btnSources)
         btnLang = findViewById(R.id.btnLang)
         btnFalseColor = findViewById(R.id.btnFalseColor)
+        btnDiscovery = findViewById(R.id.btnDiscovery)
         btnAbout = findViewById(R.id.btnAbout)
         leftBar = findViewById(R.id.leftBar)
         falseColorScaleContainer = findViewById(R.id.falseColorScaleContainer)
@@ -130,7 +132,13 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnMute.setOnClickListener { toggleMute() }
         btnLang.setOnClickListener { showLanguageMenu(it) }
         btnFalseColor.setOnClickListener { toggleFalseColor() }
+        btnDiscovery.setOnClickListener { toggleDiscoveryServer() }
         btnAbout.setOnClickListener { showAboutDialog() }
+        updateDiscoveryIcon()
+        // Restore discovery server if previously enabled
+        if (getSharedPreferences("ndiviewer_prefs", MODE_PRIVATE).getBoolean("discovery_server", false)) {
+            startDiscoveryService()
+        }
 
         setupFalseColorScaleDrag()
 
@@ -218,6 +226,45 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
         falseColorScaleContainer.alpha = 0.92f
         btnFalseColor.alpha = 0.5f
+    }
+
+    private fun toggleDiscoveryServer() {
+        val enabled = NdiDiscoveryServer.isRunning()
+        if (enabled) {
+            stopDiscoveryService()
+        } else {
+            // Request notification permission on Android 13+ if needed
+            startDiscoveryService()
+        }
+        updateDiscoveryIcon()
+    }
+
+    private fun startDiscoveryService() {
+        try {
+            val intent = Intent(this, NdiDiscoveryService::class.java).apply { action = NdiDiscoveryService.ACTION_START }
+            if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
+            getSharedPreferences("ndiviewer_prefs", MODE_PRIVATE).edit().putBoolean("discovery_server", true).apply()
+        } catch (e: Throwable) {
+            Toast.makeText(this, "Discovery start failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+        updateDiscoveryIcon()
+    }
+
+    private fun stopDiscoveryService() {
+        try {
+            val intent = Intent(this, NdiDiscoveryService::class.java).apply { action = NdiDiscoveryService.ACTION_STOP }
+            startService(intent)
+            getSharedPreferences("ndiviewer_prefs", MODE_PRIVATE).edit().putBoolean("discovery_server", false).apply()
+        } catch (_: Throwable) {}
+        updateDiscoveryIcon()
+    }
+
+    private fun updateDiscoveryIcon() {
+        val on = NdiDiscoveryServer.isRunning() || getSharedPreferences("ndiviewer_prefs", MODE_PRIVATE).getBoolean("discovery_server", false)
+        // Will be updated after service starts; use isRunning for immediate
+        val active = NdiDiscoveryServer.isRunning()
+        btnDiscovery.alpha = if (active) 1f else 0.5f
+        btnDiscovery.setColorFilter(if (active) 0xFF3AC4A2.toInt() else 0xFFE8EAED.toInt())
     }
 
     private fun showAboutDialog() {
