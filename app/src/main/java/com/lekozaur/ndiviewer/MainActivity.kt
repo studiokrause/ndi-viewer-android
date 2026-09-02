@@ -11,6 +11,9 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.content.Intent
+import android.net.Uri
+import android.text.method.LinkMovementMethod
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -20,6 +23,7 @@ import android.widget.PopupMenu
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.WindowCompat
@@ -40,6 +44,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var btnLang: ImageButton
     private lateinit var btnFalseColor: ImageButton
     private lateinit var btnHistogram: ImageButton
+    private lateinit var btnAbout: ImageButton
     private lateinit var leftBar: View
     private lateinit var histogramContainer: FrameLayout
     private lateinit var histogramView: HistogramView
@@ -90,6 +95,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnLang = findViewById(R.id.btnLang)
         btnFalseColor = findViewById(R.id.btnFalseColor)
         btnHistogram = findViewById(R.id.btnHistogram)
+        btnAbout = findViewById(R.id.btnAbout)
         leftBar = findViewById(R.id.leftBar)
         histogramContainer = findViewById(R.id.histogramContainer)
         histogramView = findViewById(R.id.histogramView)
@@ -135,6 +141,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnLang.setOnClickListener { showLanguageMenu(it) }
         btnFalseColor.setOnClickListener { toggleFalseColor() }
         btnHistogram.setOnClickListener { toggleHistogram() }
+        btnAbout.setOnClickListener { showAboutDialog() }
 
         setupHistogramDrag()
         setupFalseColorScaleDrag()
@@ -189,16 +196,11 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         if (visible && !isConnected) statusText.visibility = View.VISIBLE else statusText.visibility = View.GONE
         statsText.visibility = vis
         leftBar.visibility = vis
-        // visual helpers are controlled separately but hide with UI for immersive
-        if (!visible) {
-            // keep histogram/scale visibility state but respect immersive hide
-            histogramContainer.visibility = View.GONE
-            falseColorScaleContainer.visibility = View.GONE
-            histogramControls.visibility = View.GONE
-        } else {
-            if (histogramOn) { histogramContainer.visibility = View.VISIBLE; histogramControls.visibility = View.VISIBLE }
-            if (falseColorOn) falseColorScaleContainer.visibility = View.VISIBLE
-        }
+        // Helpers stay visible even when UI hides (unless toggled off)
+        // histogramControls is part of UI chrome, so it hides; histogram/scale stay
+        histogramControls.visibility = if (visible && histogramOn) View.VISIBLE else View.GONE
+        histogramContainer.visibility = if (histogramOn) View.VISIBLE else View.GONE
+        falseColorScaleContainer.visibility = if (falseColorOn) View.VISIBLE else View.GONE
         if (visible) {
             uiHandler.removeCallbacks(hideUiRunnable)
             uiHandler.postDelayed(hideUiRunnable, uiHideDelayMs)
@@ -229,7 +231,17 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         histogramContainer.visibility = if (histogramOn) View.VISIBLE else View.GONE
         histogramControls.visibility = if (histogramOn) View.VISIBLE else View.GONE
         btnHistogram.alpha = if (histogramOn) 1f else 0.5f
-        if (histogramOn) showUi()
+        if (histogramOn) {
+            showUi()
+            // If no video, show synthetic histogram so user sees it's working
+            if (!isConnected) {
+                val dummyR = IntArray(256) { i -> (80 + 40 * kotlin.math.sin(i * Math.PI / 64)).toInt().coerceIn(0, 255) }
+                val dummyG = IntArray(256) { i -> (100 + 30 * kotlin.math.cos(i * Math.PI / 64)).toInt().coerceIn(0, 255) }
+                val dummyB = IntArray(256) { i -> (90 + 50 * kotlin.math.sin(i * Math.PI / 32)).toInt().coerceIn(0, 255) }
+                val dummyL = IntArray(256) { i -> (120 - kotlin.math.abs(i - 128) ).coerceIn(0, 255) }
+                histogramView.updateHistogram(dummyR, dummyG, dummyB, dummyL)
+            }
+        }
     }
 
     private fun setupHistogramDrag() {
@@ -280,6 +292,33 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         falseColorScaleContainer.alpha = 0.92f
         btnFalseColor.alpha = 0.5f
         btnHistogram.alpha = 0.5f
+    }
+
+    private fun showAboutDialog() {
+        val msg = """
+            NDI Viewer for Android
+            Branch: visual-helpers (BETA)
+
+            Author: studio.krause
+            Generator: OpenCode / Muse Spark 1.2 Contributor
+
+            NDI® is a registered trademark of Vizrt NDI AB.
+            This app uses the NDI SDK (libndi.so + headers) provided by Vizrt (formerly NewTek) under the NDI SDK License Agreement.
+            This project is not affiliated with, endorsed by, or sponsored by Vizrt/NewTek.
+
+            Learn more: https://ndi.video
+        """.trimIndent()
+        val dlg = AlertDialog.Builder(this)
+            .setTitle("About NDI Viewer")
+            .setMessage(msg)
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Open ndi.video") { _, _ ->
+                try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://ndi.video"))) } catch (_: Throwable) {}
+            }
+            .create()
+        dlg.show()
+        // make link clickable if needed
+        try { dlg.findViewById<TextView>(android.R.id.message)?.movementMethod = LinkMovementMethod.getInstance() } catch (_: Throwable) {}
     }
 
     // ---------------------------------------------------------- sources sheet

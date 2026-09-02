@@ -1,74 +1,149 @@
 [
   {
     "ire": 0,
-    "zakres": "0–2",
-    "kolor": "White",
-    "hex": "#FFFFFF"
+    "mv": 0,
+    "zakres": "0–5",
+    "kolor": "Bright Purple",
+    "hex": "#D938FF"
   },
   {
-    "ire": 2,
-    "zakres": "2–10",
+    "ire": 5,
+    "mv": 35,
+    "zakres": "5–10",
     "kolor": "Blue",
-    "hex": "#020346"
+    "hex": "#0000FF"
   },
   {
     "ire": 10,
-    "zakres": "10–20",
+    "mv": 70,
+    "zakres": "10–15",
     "kolor": "Light Blue",
-    "hex": "#2496FF"
+    "hex": "#548CFF"
+  },
+  {
+    "ire": 15,
+    "mv": 105,
+    "zakres": "15–20",
+    "kolor": "Light Blue",
+    "hex": "#548CFF"
   },
   {
     "ire": 20,
-    "zakres": "20–42",
-    "kolor": "Dark Grey",
-    "hex": "#52524F"
+    "mv": 140,
+    "zakres": "20–25",
+    "kolor": "Dark Gray",
+    "hex": "#4C4C4C"
   },
   {
-    "ire": 42,
-    "zakres": "42–48",
-    "kolor": "Bright Purple",
-    "hex": "#FE1BFE"
+    "ire": 25,
+    "mv": 175,
+    "zakres": "25–30",
+    "kolor": "Dark Gray",
+    "hex": "#4C4C4C"
   },
   {
-    "ire": 48,
-    "zakres": "48–52",
-    "kolor": "Medium Gray",
-    "hex": "#7B7B7B"
+    "ire": 30,
+    "mv": 210,
+    "zakres": "30–35",
+    "kolor": "Dark Gray",
+    "hex": "#4C4C4C"
   },
   {
-    "ire": 52,
-    "zakres": "52–58",
+    "ire": 35,
+    "mv": 245,
+    "zakres": "35–40",
+    "kolor": "Dark Gray",
+    "hex": "#4C4C4C"
+  },
+  {
+    "ire": 40,
+    "mv": 280,
+    "zakres": "40–45",
+    "kolor": "Dark Gray",
+    "hex": "#4C4C4C"
+  },
+  {
+    "ire": 45,
+    "mv": 315,
+    "zakres": "45–50",
     "kolor": "Green",
-    "hex": "#1DF438"
+    "hex": "#99FF00"
   },
   {
-    "ire": 58,
-    "zakres": "58–78",
-    "kolor": "Light Grey",
-    "hex": "#BAB8B6"
+    "ire": 50,
+    "mv": 350,
+    "zakres": "50–55",
+    "kolor": "Medium Gray",
+    "hex": "#7F7F7F"
   },
   {
-    "ire": 78,
-    "zakres": "78–84",
+    "ire": 55,
+    "mv": 385,
+    "zakres": "55–60",
+    "kolor": "Pink",
+    "hex": "#F29E9E"
+  },
+  {
+    "ire": 60,
+    "mv": 420,
+    "zakres": "60–65",
+    "kolor": "Light Gray",
+    "hex": "#B2B2B2"
+  },
+  {
+    "ire": 65,
+    "mv": 455,
+    "zakres": "65–70",
+    "kolor": "Light Gray",
+    "hex": "#B2B2B2"
+  },
+  {
+    "ire": 70,
+    "mv": 490,
+    "zakres": "70–75",
+    "kolor": "Light Gray",
+    "hex": "#B2B2B2"
+  },
+  {
+    "ire": 75,
+    "mv": 525,
+    "zakres": "75–80",
+    "kolor": "Light Gray",
+    "hex": "#B2B2B2"
+  },
+  {
+    "ire": 80,
+    "mv": 560,
+    "zakres": "80–85",
     "kolor": "Dark Yellow",
-    "hex": "#AEAF15"
+    "hex": "#FFFF00"
   },
   {
-    "ire": 84,
-    "zakres": "84–94",
+    "ire": 85,
+    "mv": 595,
+    "zakres": "85–90",
     "kolor": "Yellow",
-    "hex": "#F6FF19"
+    "hex": "#FFFF00"
   },
   {
-    "ire": 94,
-    "zakres": "94–100",
+    "ire": 90,
+    "mv": 630,
+    "zakres": "90–95",
+    "kolor": "Yellow",
+    "hex": "#FFFF00"
+  },
+  {
+    "ire": 95,
+    "mv": 665,
+    "zakres": "95–100",
     "kolor": "Orange",
-    "hex": "#FF971C"
+    "hex": "#E57F00"
   },
   {
     "ire": 100,
-    "zakres": "100–108",
+    "mv": 700,
+    "zakres": "100+",
     "kolor": "Red",
-    "hex": "#DE0E0D"
+    "hex": "#E53300"
   }
 ]

@@ -14,7 +14,7 @@ class FalseColorScaleView @JvmOverloads constructor(
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textSize = 26f // larger font as requested
+        textSize = 39f // 1.5x larger (26*1.5 = 39)
         setShadowLayer(3f, 1f, 1f, Color.BLACK)
         isFakeBoldText = true
     }
@@ -30,10 +30,10 @@ class FalseColorScaleView @JvmOverloads constructor(
         super.onDraw(canvas)
         val w = width.toFloat()
         val h = height.toFloat()
-        val barLeft = 28f
-        val barRight = w - 4f
-        val barTop = 14f
-        val barBottom = h - 6f
+        val barLeft = w * 0.52f // half-width bar, left half for numbers (larger font)
+        val barRight = w - 2f
+        val barTop = 12f
+        val barBottom = h - 4f
         val barW = barRight - barLeft
 
         // draw gradient using table: IRE 0..108 maps to bar height (bottom 0 -> top 108)

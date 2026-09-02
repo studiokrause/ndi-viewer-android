@@ -2,25 +2,33 @@ package com.lekozaur.ndiviewer
 
 import android.graphics.Color
 
-data class FalseColorEntry(val ire: Int, val range: String, val name: String, val hex: String, val color: Int)
+data class FalseColorEntry(val ire: Int, val mv: Int, val range: String, val name: String, val hex: String, val color: Int)
 
 object FalseColorTable {
     val entries: List<FalseColorEntry> = listOf(
-        FalseColorEntry(0, "0–2", "White", "#FFFFFF", Color.parseColor("#FFFFFF")),
-        FalseColorEntry(2, "2–10", "Blue", "#020346", Color.parseColor("#020346")),
-        FalseColorEntry(10, "10–20", "Light Blue", "#2496FF", Color.parseColor("#2496FF")),
-        FalseColorEntry(20, "20–42", "Dark Grey", "#52524F", Color.parseColor("#52524F")),
-        FalseColorEntry(42, "42–48", "Bright Purple", "#FE1BFE", Color.parseColor("#FE1BFE")),
-        FalseColorEntry(48, "48–52", "Medium Gray", "#7B7B7B", Color.parseColor("#7B7B7B")),
-        FalseColorEntry(52, "52–58", "Green", "#1DF438", Color.parseColor("#1DF438")),
-        FalseColorEntry(58, "58–78", "Light Grey", "#BAB8B6", Color.parseColor("#BAB8B6")),
-        FalseColorEntry(78, "78–84", "Dark Yellow", "#AEAF15", Color.parseColor("#AEAF15")),
-        FalseColorEntry(84, "84–94", "Yellow", "#F6FF19", Color.parseColor("#F6FF19")),
-        FalseColorEntry(94, "94–100", "Orange", "#FF971C", Color.parseColor("#FF971C")),
-        FalseColorEntry(100, "100–108", "Red", "#DE0E0D", Color.parseColor("#DE0E0D")),
+        FalseColorEntry(0, 0, "0–5", "Bright Purple", "#D938FF", Color.parseColor("#D938FF")),
+        FalseColorEntry(5, 35, "5–10", "Blue", "#0000FF", Color.parseColor("#0000FF")),
+        FalseColorEntry(10, 70, "10–15", "Light Blue", "#548CFF", Color.parseColor("#548CFF")),
+        FalseColorEntry(15, 105, "15–20", "Light Blue", "#548CFF", Color.parseColor("#548CFF")),
+        FalseColorEntry(20, 140, "20–25", "Dark Gray", "#4C4C4C", Color.parseColor("#4C4C4C")),
+        FalseColorEntry(25, 175, "25–30", "Dark Gray", "#4C4C4C", Color.parseColor("#4C4C4C")),
+        FalseColorEntry(30, 210, "30–35", "Dark Gray", "#4C4C4C", Color.parseColor("#4C4C4C")),
+        FalseColorEntry(35, 245, "35–40", "Dark Gray", "#4C4C4C", Color.parseColor("#4C4C4C")),
+        FalseColorEntry(40, 280, "40–45", "Dark Gray", "#4C4C4C", Color.parseColor("#4C4C4C")),
+        FalseColorEntry(45, 315, "45–50", "Green", "#99FF00", Color.parseColor("#99FF00")),
+        FalseColorEntry(50, 350, "50–55", "Medium Gray", "#7F7F7F", Color.parseColor("#7F7F7F")),
+        FalseColorEntry(55, 385, "55–60", "Pink", "#F29E9E", Color.parseColor("#F29E9E")),
+        FalseColorEntry(60, 420, "60–65", "Light Gray", "#B2B2B2", Color.parseColor("#B2B2B2")),
+        FalseColorEntry(65, 455, "65–70", "Light Gray", "#B2B2B2", Color.parseColor("#B2B2B2")),
+        FalseColorEntry(70, 490, "70–75", "Light Gray", "#B2B2B2", Color.parseColor("#B2B2B2")),
+        FalseColorEntry(75, 525, "75–80", "Light Gray", "#B2B2B2", Color.parseColor("#B2B2B2")),
+        FalseColorEntry(80, 560, "80–85", "Dark Yellow", "#FFFF00", Color.parseColor("#FFFF00")),
+        FalseColorEntry(85, 595, "85–90", "Yellow", "#FFFF00", Color.parseColor("#FFFF00")),
+        FalseColorEntry(90, 630, "90–95", "Yellow", "#FFFF00", Color.parseColor("#FFFF00")),
+        FalseColorEntry(95, 665, "95–100", "Orange", "#E57F00", Color.parseColor("#E57F00")),
+        FalseColorEntry(100, 700, "100+", "Red", "#E53300", Color.parseColor("#E53300")),
     )
 
-    // Map IRE 0..108 to color by range
     fun colorForIRE(ire: Int): Int {
         val clamped = ire.coerceIn(0, 108)
         for (i in entries.indices) {
@@ -31,12 +39,10 @@ object FalseColorTable {
         return entries.last().color
     }
 
-    // Luma 0..255 (where 16=0 IRE, 235=100 IRE, 255=108 IRE approx) -> IRE
     fun lumaToIRE(luma: Int): Int {
-        // BT.709 limited: 16..235 maps to 0..100, 236..255 maps to 100..108
         return when {
             luma <= 16 -> 0
-            luma >= 235 -> 100 + ((luma - 235) * 8 / 20).coerceIn(0, 8) // 235->100, 255->108
+            luma >= 235 -> 100 + ((luma - 235) * 8 / 20).coerceIn(0, 8)
             else -> (luma - 16) * 100 / 219
         }
     }

@@ -182,18 +182,23 @@ class VideoRenderer(private val view: FitSurfaceView) {
 
     private fun computeHistogram(bmp: Bitmap, cb: (IntArray, IntArray, IntArray, IntArray) -> Unit) {
         val w = bmp.width; val h = bmp.height
-        // sample every 4th pixel to keep 30fps
-        val step = 4
         val histR = IntArray(256); val histG = IntArray(256); val histB = IntArray(256); val histL = IntArray(256)
-        val pixels = IntArray(w * h)
-        bmp.getPixels(pixels, 0, w, 0, 0, w, h)
-        var idx = 0
-        while (idx < pixels.size) {
-            val c = pixels[idx]
-            val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
-            val l = (0.299 * r + 0.587 * g + 0.114 * b).toInt()
-            histR[r]++; histG[g]++; histB[b]++; histL[l.coerceIn(0,255)]++
-            idx += step
+        // Sample sparse to avoid OOM: step 6px ~ 60k samples for 1080p
+        val stepX = 6
+        val stepY = 6
+        var y = 0
+        while (y < h) {
+            var x = 0
+            while (x < w) {
+                try {
+                    val c = bmp.getPixel(x, y)
+                    val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
+                    val l = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255)
+                    histR[r]++; histG[g]++; histB[b]++; histL[l]++
+                } catch (_: Throwable) {}
+                x += stepX
+            }
+            y += stepY
         }
         cb(histR, histG, histB, histL)
     }

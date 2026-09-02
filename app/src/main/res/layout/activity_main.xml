@@ -86,6 +86,16 @@
             android:contentDescription="@string/language"
             android:src="@drawable/ic_language"
             android:tint="#E8EAED" />
+
+        <ImageButton
+            android:id="@+id/btnAbout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="About"
+            android:src="@drawable/ic_info"
+            android:tint="#E8EAED" />
     </LinearLayout>
 
     <!-- LIVE bar: red, narrow, right-aligned -->
@@ -108,10 +118,10 @@
         android:textColor="#E8EAED"
         android:textSize="13sp" />
 
-    <!-- FalseColor scale (left, draggable, with numbers, narrower) -->
+    <!-- FalseColor scale (left, draggable, with numbers, half width, larger font) -->
     <FrameLayout
         android:id="@+id/falseColorScaleContainer"
-        android:layout_width="44dp"
+        android:layout_width="22dp"
         android:layout_height="240dp"
         android:layout_gravity="start|center_vertical"
         android:layout_marginStart="70dp"
