@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+﻿package com.lekozaur.ndiviewer
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -302,7 +302,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         txtStream.text = streamInfo
 
         val aboutMsg = """
-            NDI Viewer for Android
+            NDI monitor for Android
             Branch: visual-helpers (BETA)
 
             Author: studio.krause

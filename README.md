@@ -1,4 +1,4 @@
-# NDI Viewer for Android
+﻿# NDI monitor for Android
 
 A minimal, standalone NDI® receiver for Android based on the NewTek/Vizrt NDI SDK
 (`v6.3.2.0`). It detects NDI sources on the network (mDNS), displays video with audio,
@@ -176,7 +176,7 @@ This project is not affiliated with, endorsed by, sponsored by, or otherwise off
 
 All trademarks, service marks, product names, logos, and company names mentioned in this project are the property of their respective owners.
 
-Copyright © 2026 the authors of NDI Viewer for Android - and Opencode :).
+Copyright © 2026 the authors of NDI monitor for Android - and Opencode :).
 
 The source code of this application is distributed under the license specified in this repository. This license does **not** grant any rights to redistribute, modify, or otherwise use the NDI SDK beyond the rights expressly granted by the applicable NDI SDK License Agreement.
 
