@@ -1,4 +1,4 @@
-# NDI Viewer for Android
+﻿# NDI monitor for Android
 
 A minimal, standalone NDI® receiver for Android based on the NewTek/Vizrt NDI SDK
 (`v6.3.2.0`). It detects NDI sources on the network (mDNS), displays video with audio,
@@ -116,6 +116,33 @@ is immediately marked 🔴. Otherwise, every new entry is probed in the backgrou
 classifies `FourCC` via `DecodeClassifier`, and updates `SourceAdapter` through
 `updateStatus`).
 
+## Visual Helpers - BETA (branch `visual-helpers` / `NDI-discovery`)
+
+> **BETA** - experimental features, may lower FPS on 4K. Branch `visual-helpers` is not merged into `main`.
+
+- **False Color** (`VideoRenderer.falseColorEnabled`, `btnFalseColor` in left bar): heatmap via `FalseColorTable` (IRE 0..108 from `falsecolor.json`: 0 White #FFFFFF -> 2 Blue #020346 -> 10 Light Blue #2496FF -> 20 Dark Grey #52524F -> 42 Bright Purple #FE1BFE -> 48 Medium Gray -> 52 Green -> 58 Light Grey -> 78 Dark Yellow -> 84 Yellow -> 94 Orange -> 100 Red #DE0E0D, maps luma 16->0 IRE, 235->100 IRE). Scale `FalseColorScaleView` 33dp with 29sp right-justified numbers, draggable. Toggle, icon alpha 1.0/0.5. Histogram removed in v0.8.0 per request.
+
+Build from branch:
+```bat
+git checkout visual-helpers
+gradlew.bat --no-daemon assembleDebug
+```
+
+## NDI Discovery Server - BETA (branch `NDI-discovery`)
+
+> **BETA** - contains all `visual-helpers` features plus a built-in discovery server. Is it possible? **Yes, partially.**
+
+The official Vizrt NDI Discovery Server is closed-source and not part of the public SDK. On Android we emulate its core behaviour:
+
+- **What this branch does:** `NdiDiscoveryServer` (singleton) + `NdiDiscoveryService` (foreground `dataSync`, notification `NDI Discovery Server - ON`, `MulticastLock` continuously held, persistent `NdiFinder` cache, `NsdManager` advertisement `_ndi._tcp` on port 5961). Toggle via left-bar `ic_discovery` (amber when active) or via `NdiDiscoveryServer` prefs `discovery_server`. Other NDI devices on the same subnet can set `Extra IPs = <this Android IP>` or rely on mDNS; the service keeps mDNS warm and answers faster than cold discovery.
+- **Limitations vs official server:** Does not implement the proprietary TCP 5960 directory protocol. It is an mDNS reflector/cache, not a full directory. Requires `FOREGROUND_SERVICE` + `POST_NOTIFICATIONS` (Android 13+). Keeping `MulticastLock` continuously increases battery use. Cannot proxy `NDI|HX` compressed sources that need a hardware decoder. For VLANs where mDNS is filtered, still requires network multicast to be allowed.
+- **When to use:** Enable the Discovery Server toggle when you have many NDI sources and the default `BottomSheet` finder is slow or misses sources due to Android multicast throttling. It makes the source list instant (cache) and helps other receivers find sources via this device.
+
+```bat
+git checkout NDI-discovery
+gradlew.bat --no-daemon assembleDebug
+```
+
 ## Limitations / TODO
 
 - H.264/NDI-HX in 🔴 mode requires an external decoder (MediaCodec `H264` or
@@ -149,7 +176,7 @@ This project is not affiliated with, endorsed by, sponsored by, or otherwise off
 
 All trademarks, service marks, product names, logos, and company names mentioned in this project are the property of their respective owners.
 
-Copyright © 2026 the authors of NDI Viewer for Android - and Opencode :).
+Copyright © 2026 the authors of NDI monitor for Android - and Opencode :).
 
 The source code of this application is distributed under the license specified in this repository. This license does **not** grant any rights to redistribute, modify, or otherwise use the NDI SDK beyond the rights expressly granted by the applicable NDI SDK License Agreement.
 

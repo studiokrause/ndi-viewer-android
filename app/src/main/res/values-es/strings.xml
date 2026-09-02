@@ -1,20 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NDI Viewer</string>
+    <string name="app_name">NDI monitor</string>
     <string name="sources">Fuentes NDI</string>
     <string name="mute">Silenciar</string>
     <string name="language">Idioma</string>
     <string name="refresh">Actualizar</string>
-    <string name="status_init">Inicializando NDI…</string>
-    <string name="status_init_failed">No se pudo inicializar NDI (¿hardware no compatible?)</string>
+    <string name="status_init">Inicializando NDIâ€¦</string>
+    <string name="status_init_failed">No se pudo inicializar NDI (Âżhardware no compatible?)</string>
     <string name="status_no_source">Selecciona una fuente NDI (icono de lista arriba)</string>
-    <string name="status_idle">Sin conexión</string>
-    <string name="status_connecting">Conectando: %1$s…</string>
-    <string name="status_live">● EN VIVO</string>
-    <string name="status_no_signal">Sin señal — verifica el emisor</string>
-    <string name="searching">Buscando fuentes NDI…</string>
+    <string name="status_idle">Sin conexiĂłn</string>
+    <string name="status_connecting">Conectando: %1$sâ€¦</string>
+    <string name="status_live">â—Ź EN VIVO</string>
+    <string name="status_no_signal">Sin seĂ±al â€” verifica el emisor</string>
+    <string name="searching">Buscando fuentes NDIâ€¦</string>
     <string name="manual_hint">Manual: IP[:port], ej. 192.168.1.20:5961</string>
     <string name="manual_connect">Conectar</string>
-    <string name="low_bandwidth">Modo ahorro (menor resolución — Wi-Fi)</string>
-    <string name="stats_fmt">%1$d×%2$dp • %3$s fps (%4$.1f real) • drop %5$d • conn %6$d</string>
+    <string name="low_bandwidth">Modo ahorro (menor resoluciĂłn â€” Wi-Fi)</string>
+    <string name="stats_fmt">%1$dĂ—%2$dp â€˘ %3$s fps (%4$.1f real) â€˘ drop %5$d â€˘ conn %6$d</string>
 </resources>

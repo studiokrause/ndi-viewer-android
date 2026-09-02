@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+﻿package com.lekozaur.ndiviewer
 
 import java.io.Closeable
 import java.nio.ByteBuffer
@@ -47,7 +47,7 @@ class NdiStream(
 
     fun connectTo(url: String, name: String?) {
         if (!running) {
-            if (!jni.create("NDI Viewer (Android)", bandwidth)) {
+            if (!jni.create("NDI monitor (Android)", bandwidth)) {
                 listener.onError("Nie udało się utworzyć odbiornika NDI")
                 return
             }

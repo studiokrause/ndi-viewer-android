@@ -52,6 +52,8 @@ class VideoRenderer(private val view: FitSurfaceView) {
     private val main = Handler(Looper.getMainLooper())
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
 
+    @Volatile var falseColorEnabled = false
+
     private var bitmaps = arrayOfNulls<Bitmap>(2)
     private var writeIdx = 0
 
@@ -102,6 +104,7 @@ class VideoRenderer(private val view: FitSurfaceView) {
         buf.rewind()
         try {
             bmp.copyPixelsFromBuffer(buf)
+            if (falseColorEnabled) applyFalseColor(bmp)
         } catch (_: Throwable) {
             return
         }
@@ -155,6 +158,21 @@ class VideoRenderer(private val view: FitSurfaceView) {
             } catch (_: Throwable) {
             }
         }
+    }
+
+    private fun applyFalseColor(bmp: Bitmap) {
+        // Use table from falsecolor.json via FalseColorTable (IRE 0..108)
+        val w = bmp.width; val h = bmp.height
+        val pixels = IntArray(w * h)
+        bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+        for (i in pixels.indices) {
+            val c = pixels[i]
+            val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
+            val luma = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255)
+            val fc = FalseColorTable.lumaToColor(luma)
+            pixels[i] = 0xFF000000.toInt() or (fc and 0x00FFFFFF)
+        }
+        bmp.setPixels(pixels, 0, w, 0, 0, w, h)
     }
 
     fun clear() {

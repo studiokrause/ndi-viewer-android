@@ -1,4 +1,4 @@
-// NDI Viewer for Android - native JNI bridge over NDI SDK v6
+﻿// NDI monitor for Android - native JNI bridge over NDI SDK v6
 #include <jni.h>
 #include <android/log.h>
 #include <aaudio/AAudio.h>
@@ -448,7 +448,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCreate(JNIEnv* env, jobject, js
     cfg.bandwidth = (NDIlib_recv_bandwidth_e)bandwidth;
     cfg.allow_video_fields = false;
     const char* nm = recvName ? env->GetStringUTFChars(recvName, nullptr) : nullptr;
-    cfg.p_ndi_recv_name = (nm && nm[0]) ? nm : "NDI Viewer (Android)";
+    cfg.p_ndi_recv_name = (nm && nm[0]) ? nm : "NDI monitor (Android)";
 
     auto* R = new Receiver();
     R->recv = NDIlib_recv_create_v3(&cfg);
