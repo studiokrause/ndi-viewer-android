@@ -137,3 +137,20 @@ classifies `FourCC` via `DecodeClassifier`, and updates `SourceAdapter` through
 The application embeds `libndi.so` from the official NDI SDK package (EULA
 `NDI SDK License Agreement.pdf`). Production use requires acceptance of the
 Vizrt NDI license terms.
+
+
+## Trademarks, Copyright and NDI SDK Notice
+
+NDI® is a registered trademark of Vizrt NDI AB and is used under applicable license terms.
+
+This application uses the NDI® SDK provided by Vizrt (formerly NewTek). The NDI SDK, including `libndi.so` and the associated header files, is proprietary software owned by Vizrt and/or its licensors and is subject to the **NDI SDK License Agreement**.
+
+This project is not affiliated with, endorsed by, sponsored by, or otherwise officially associated with Vizrt or NewTek.
+
+All trademarks, service marks, product names, logos, and company names mentioned in this project are the property of their respective owners.
+
+Copyright © 2026 the authors of NDI Viewer for Android - and Opencode :).
+
+The source code of this application is distributed under the license specified in this repository. This license does **not** grant any rights to redistribute, modify, or otherwise use the NDI SDK beyond the rights expressly granted by the applicable NDI SDK License Agreement.
+
+For commercial or production distribution, ensure that your use and distribution of the NDI SDK comply with the current licensing terms provided by Vizrt.
