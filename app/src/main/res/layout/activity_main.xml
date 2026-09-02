@@ -27,7 +27,7 @@
         android:textColor="#9AA0A6"
         android:textSize="18sp" />
 
-    <!-- Left vertical icon bar: lista -> audio -> falsecolor -> histogram -> jezyk -->
+    <!-- Left vertical icon bar: lista -> audio -> falsecolor -> jezyk -> about -->
     <LinearLayout
         android:id="@+id/leftBar"
         android:layout_width="wrap_content"
@@ -65,16 +65,6 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="False color"
             android:src="@drawable/ic_falsecolor"
-            android:tint="#E8EAED" />
-
-        <ImageButton
-            android:id="@+id/btnHistogram"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Histogram"
-            android:src="@drawable/ic_histogram"
             android:tint="#E8EAED" />
 
         <ImageButton
@@ -118,10 +108,10 @@
         android:textColor="#E8EAED"
         android:textSize="13sp" />
 
-    <!-- FalseColor scale (left, draggable, with numbers, half width, larger font) -->
+    <!-- FalseColor scale (left, draggable, with numbers, half width *1.5, larger font) -->
     <FrameLayout
         android:id="@+id/falseColorScaleContainer"
-        android:layout_width="22dp"
+        android:layout_width="33dp"
         android:layout_height="240dp"
         android:layout_gravity="start|center_vertical"
         android:layout_marginStart="70dp"
@@ -134,75 +124,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
-
-    <!-- Draggable histogram overlay -->
-    <FrameLayout
-        android:id="@+id/histogramContainer"
-        android:layout_width="160dp"
-        android:layout_height="100dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="12dp"
-        android:background="#CC1A1A1F"
-        android:elevation="6dp"
-        android:visibility="gone">
-
-        <com.lekozaur.ndiviewer.HistogramView
-            android:id="@+id/histogramView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <View
-            android:id="@+id/histogramDragHandle"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="top|end"
-            android:background="?attr/selectableItemBackgroundBorderless" />
-    </FrameLayout>
-
-    <!-- Histogram controls (size + alpha) -->
-    <LinearLayout
-        android:id="@+id/histogramControls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="48dp"
-        android:background="#CC1A1A1F"
-        android:elevation="6dp"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Size"
-            android:textColor="#E8EAED"
-            android:textSize="12sp" />
-
-        <SeekBar
-            android:id="@+id/seekHistSize"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:max="100"
-            android:progress="50" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Alpha"
-            android:textColor="#E8EAED"
-            android:textSize="12sp" />
-
-        <SeekBar
-            android:id="@+id/seekHistAlpha"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:max="100"
-            android:progress="80" />
-    </LinearLayout>
 
     <TextView
         android:id="@+id/statsText"

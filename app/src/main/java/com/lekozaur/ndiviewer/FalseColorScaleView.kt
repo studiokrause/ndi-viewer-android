@@ -14,9 +14,10 @@ class FalseColorScaleView @JvmOverloads constructor(
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textSize = 39f // 1.5x larger (26*1.5 = 39)
+        textSize = 29f // 0.75 * 39 = 29.25
         setShadowLayer(3f, 1f, 1f, Color.BLACK)
         isFakeBoldText = true
+        textAlign = Paint.Align.RIGHT
     }
     private val smallTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#E8EAED")
@@ -46,12 +47,11 @@ class FalseColorScaleView @JvmOverloads constructor(
         }
         canvas.drawRect(barLeft, barTop, barRight, barBottom, borderPaint)
 
-        // labels: draw each entry's ire with number and color name
+        // labels: right-justified, offset few px from bar
         for (entry in FalseColorTable.entries) {
             val y = barTop + barH * (1f - entry.ire / 108f)
             canvas.drawLine(barLeft - 6f, y, barLeft, y, tickPaint)
-            // IRE number - larger font
-            canvas.drawText(entry.ire.toString(), 2f, y + 5f, textPaint)
+            canvas.drawText(entry.ire.toString(), barLeft - 8f, y + 5f, textPaint)
         }
     }
 }

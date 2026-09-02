@@ -3,6 +3,8 @@ package com.lekozaur.ndiviewer
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
@@ -11,16 +13,12 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.content.Intent
-import android.net.Uri
-import android.text.method.LinkMovementMethod
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.PopupMenu
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -29,6 +27,7 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.WindowCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.tabs.TabLayout
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
@@ -43,14 +42,8 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private lateinit var btnSources: ImageButton
     private lateinit var btnLang: ImageButton
     private lateinit var btnFalseColor: ImageButton
-    private lateinit var btnHistogram: ImageButton
     private lateinit var btnAbout: ImageButton
     private lateinit var leftBar: View
-    private lateinit var histogramContainer: FrameLayout
-    private lateinit var histogramView: HistogramView
-    private lateinit var histogramControls: View
-    private lateinit var seekHistSize: SeekBar
-    private lateinit var seekHistAlpha: SeekBar
     private lateinit var falseColorScaleContainer: FrameLayout
 
     private var stream: NdiStream? = null
@@ -68,7 +61,10 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
     private var nativeReady = false
     @Volatile private var isConnected = false
     private var falseColorOn = false
-    private var histogramOn = false
+
+    // For About -> Stream tab
+    private var lastFrame: NdiVideoFrame? = null
+    private var lastStats: NdiStreamStats? = null
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { setUiVisibleInternal(false) }
@@ -94,14 +90,8 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnSources = findViewById(R.id.btnSources)
         btnLang = findViewById(R.id.btnLang)
         btnFalseColor = findViewById(R.id.btnFalseColor)
-        btnHistogram = findViewById(R.id.btnHistogram)
         btnAbout = findViewById(R.id.btnAbout)
         leftBar = findViewById(R.id.leftBar)
-        histogramContainer = findViewById(R.id.histogramContainer)
-        histogramView = findViewById(R.id.histogramView)
-        histogramControls = findViewById(R.id.histogramControls)
-        seekHistSize = findViewById(R.id.seekHistSize)
-        seekHistAlpha = findViewById(R.id.seekHistAlpha)
         falseColorScaleContainer = findViewById(R.id.falseColorScaleContainer)
         renderer = VideoRenderer(surface)
 
@@ -140,15 +130,9 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         btnMute.setOnClickListener { toggleMute() }
         btnLang.setOnClickListener { showLanguageMenu(it) }
         btnFalseColor.setOnClickListener { toggleFalseColor() }
-        btnHistogram.setOnClickListener { toggleHistogram() }
         btnAbout.setOnClickListener { showAboutDialog() }
 
-        setupHistogramDrag()
         setupFalseColorScaleDrag()
-        setupHistogramControls()
-        renderer.histogramCallback = { r, g, b, l ->
-            if (histogramOn) runOnUiThread { histogramView.updateHistogram(r, g, b, l) }
-        }
 
         surface.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
@@ -196,10 +180,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         if (visible && !isConnected) statusText.visibility = View.VISIBLE else statusText.visibility = View.GONE
         statsText.visibility = vis
         leftBar.visibility = vis
-        // Helpers stay visible even when UI hides (unless toggled off)
-        // histogramControls is part of UI chrome, so it hides; histogram/scale stay
-        histogramControls.visibility = if (visible && histogramOn) View.VISIBLE else View.GONE
-        histogramContainer.visibility = if (histogramOn) View.VISIBLE else View.GONE
+        // falsecolor scale stays visible even when UI hides, unless toggled off
         falseColorScaleContainer.visibility = if (falseColorOn) View.VISIBLE else View.GONE
         if (visible) {
             uiHandler.removeCallbacks(hideUiRunnable)
@@ -226,34 +207,6 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         Toast.makeText(this, if (falseColorOn) "False color ON" else "False color OFF", Toast.LENGTH_SHORT).show()
     }
 
-    private fun toggleHistogram() {
-        histogramOn = !histogramOn
-        histogramContainer.visibility = if (histogramOn) View.VISIBLE else View.GONE
-        histogramControls.visibility = if (histogramOn) View.VISIBLE else View.GONE
-        btnHistogram.alpha = if (histogramOn) 1f else 0.5f
-        if (histogramOn) {
-            showUi()
-            // If no video, show synthetic histogram so user sees it's working
-            if (!isConnected) {
-                val dummyR = IntArray(256) { i -> (80 + 40 * kotlin.math.sin(i * Math.PI / 64)).toInt().coerceIn(0, 255) }
-                val dummyG = IntArray(256) { i -> (100 + 30 * kotlin.math.cos(i * Math.PI / 64)).toInt().coerceIn(0, 255) }
-                val dummyB = IntArray(256) { i -> (90 + 50 * kotlin.math.sin(i * Math.PI / 32)).toInt().coerceIn(0, 255) }
-                val dummyL = IntArray(256) { i -> (120 - kotlin.math.abs(i - 128) ).coerceIn(0, 255) }
-                histogramView.updateHistogram(dummyR, dummyG, dummyB, dummyL)
-            }
-        }
-    }
-
-    private fun setupHistogramDrag() {
-        var dX = 0f; var dY = 0f
-        histogramContainer.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> { dX = v.x - event.rawX; dY = v.y - event.rawY; true }
-                MotionEvent.ACTION_MOVE -> { v.animate().x(event.rawX + dX).y(event.rawY + dY).setDuration(0).start(); true }
-                else -> false
-            }
-        }
-    }
     private fun setupFalseColorScaleDrag() {
         var dX = 0f; var dY = 0f
         falseColorScaleContainer.setOnTouchListener { v, event ->
@@ -263,39 +216,45 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
                 else -> false
             }
         }
-    }
-    private fun setupHistogramControls() {
-        seekHistSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) {
-                val scale = 0.6f + p / 100f * 1.4f
-                val baseW = (160 * resources.displayMetrics.density).toInt()
-                val baseH = (100 * resources.displayMetrics.density).toInt()
-                val lp = histogramContainer.layoutParams
-                lp.width = (baseW * scale).toInt()
-                lp.height = (baseH * scale).toInt()
-                histogramContainer.layoutParams = lp
-            }
-            override fun onStartTrackingTouch(s: SeekBar?) {}
-            override fun onStopTrackingTouch(s: SeekBar?) {}
-        })
-        seekHistAlpha.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) {
-                val a = 0.2f + p / 100f * 0.8f
-                histogramContainer.alpha = a
-                falseColorScaleContainer.alpha = a
-                // histogramControls stays opaque - do not change its alpha
-            }
-            override fun onStartTrackingTouch(s: SeekBar?) {}
-            override fun onStopTrackingTouch(s: SeekBar?) {}
-        })
-        histogramContainer.alpha = 0.84f
         falseColorScaleContainer.alpha = 0.92f
         btnFalseColor.alpha = 0.5f
-        btnHistogram.alpha = 0.5f
     }
 
     private fun showAboutDialog() {
-        val msg = """
+        val view = layoutInflater.inflate(R.layout.dialog_about, null)
+        val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
+        val streamScroll = view.findViewById<View>(R.id.aboutStreamScroll)
+        val appScroll = view.findViewById<View>(R.id.aboutAppScroll)
+        val txtStream = view.findViewById<TextView>(R.id.txtStreamInfo)
+        val txtAbout = view.findViewById<TextView>(R.id.txtAboutInfo)
+
+        // Populate stream tab with detailed current stream info
+        val f = lastFrame
+        val s = lastStats
+        val streamInfo = buildString {
+            if (f != null && s != null && isConnected) {
+                appendLine("Connected: ${s.connections} receiver(s)")
+                appendLine("Resolution: ${f.xres} x ${f.yres}")
+                appendLine("FourCC: ${fourCCToString(f.fourcc)} (${f.fourcc})")
+                appendLine("Aspect: ${if (f.aspect > 0.01f) String.format("%.4f", f.aspect) else "square"}")
+                appendLine("FPS: ${f.fpsNum}/${f.fpsDen} (real ${String.format("%.1f", s.fps)})")
+                appendLine("Timestamp: ${f.timestamp}")
+                appendLine("Dropped: ${s.dropped} / Total: ${s.total}")
+                appendLine("Bandwidth: $bandwidth")
+                appendLine("Size: ${s.width}x${s.height}")
+            } else {
+                appendLine("No active NDI stream.")
+                appendLine("Connect to a source via the list icon on the left.")
+                appendLine("")
+                appendLine("Last known:")
+                if (f != null) appendLine("Last frame: ${f.xres}x${f.yres} FourCC=${fourCCToString(f.fourcc)}")
+                if (s != null) appendLine("Stats: ${s.width}x${s.height} conn=${s.connections}")
+                if (f == null && s == null) appendLine("(no data yet)")
+            }
+        }
+        txtStream.text = streamInfo
+
+        val aboutMsg = """
             NDI Viewer for Android
             Branch: visual-helpers (BETA)
 
@@ -308,17 +267,40 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
 
             Learn more: https://ndi.video
         """.trimIndent()
-        val dlg = AlertDialog.Builder(this)
-            .setTitle("About NDI Viewer")
-            .setMessage(msg)
+        txtAbout.text = aboutMsg
+
+        // Tabs logic
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> { streamScroll.visibility = View.VISIBLE; appScroll.visibility = View.GONE }
+                    1 -> { streamScroll.visibility = View.GONE; appScroll.visibility = View.VISIBLE }
+                }
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+        // default to Stream tab
+        streamScroll.visibility = View.VISIBLE
+        appScroll.visibility = View.GONE
+
+        AlertDialog.Builder(this)
+            .setView(view)
             .setPositiveButton("OK", null)
             .setNeutralButton("Open ndi.video") { _, _ ->
                 try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://ndi.video"))) } catch (_: Throwable) {}
             }
-            .create()
-        dlg.show()
-        // make link clickable if needed
-        try { dlg.findViewById<TextView>(android.R.id.message)?.movementMethod = LinkMovementMethod.getInstance() } catch (_: Throwable) {}
+            .show()
+    }
+
+    private fun fourCCToString(fourcc: Int): String {
+        val bytes = byteArrayOf(
+            (fourcc and 0xFF).toByte(),
+            ((fourcc shr 8) and 0xFF).toByte(),
+            ((fourcc shr 16) and 0xFF).toByte(),
+            ((fourcc shr 24) and 0xFF).toByte()
+        )
+        return String(bytes).replace(Regex("[^ -~]"), "?")
     }
 
     // ---------------------------------------------------------- sources sheet
@@ -420,6 +402,11 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
 
     // ---------------------------------------------------------- callbacks
     override fun onFrame(buf: ByteBuffer, f: NdiVideoFrame) {
+        // store for About -> Stream tab
+        lastFrame = NdiVideoFrame().apply {
+            frameType = f.frameType; xres = f.xres; yres = f.yres; fourcc = f.fourcc
+            fpsNum = f.fpsNum; fpsDen = f.fpsDen; aspect = f.aspect; timestamp = f.timestamp
+        }
         renderer.onFrame(buf, f)
         if (!isConnected) runOnUiThread {
             if (!isConnected) {
@@ -444,6 +431,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
     }
     override fun onStats(s: NdiStreamStats) {
+        lastStats = s
         runOnUiThread {
             if (!isConnected && s.connections > 0 && s.width > 0) {
                 isConnected = true

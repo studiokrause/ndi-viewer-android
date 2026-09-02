@@ -53,7 +53,6 @@ class VideoRenderer(private val view: FitSurfaceView) {
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
 
     @Volatile var falseColorEnabled = false
-    var histogramCallback: ((r: IntArray, g: IntArray, b: IntArray, l: IntArray) -> Unit)? = null
 
     private var bitmaps = arrayOfNulls<Bitmap>(2)
     private var writeIdx = 0
@@ -105,10 +104,6 @@ class VideoRenderer(private val view: FitSurfaceView) {
         buf.rewind()
         try {
             bmp.copyPixelsFromBuffer(buf)
-            // compute histogram BEFORE falsecolor so it shows original luma
-            histogramCallback?.let { cb ->
-                try { computeHistogram(bmp, cb) } catch (_: Throwable) {}
-            }
             if (falseColorEnabled) applyFalseColor(bmp)
         } catch (_: Throwable) {
             return
@@ -178,29 +173,6 @@ class VideoRenderer(private val view: FitSurfaceView) {
             pixels[i] = 0xFF000000.toInt() or (fc and 0x00FFFFFF)
         }
         bmp.setPixels(pixels, 0, w, 0, 0, w, h)
-    }
-
-    private fun computeHistogram(bmp: Bitmap, cb: (IntArray, IntArray, IntArray, IntArray) -> Unit) {
-        val w = bmp.width; val h = bmp.height
-        val histR = IntArray(256); val histG = IntArray(256); val histB = IntArray(256); val histL = IntArray(256)
-        // Sample sparse to avoid OOM: step 6px ~ 60k samples for 1080p
-        val stepX = 6
-        val stepY = 6
-        var y = 0
-        while (y < h) {
-            var x = 0
-            while (x < w) {
-                try {
-                    val c = bmp.getPixel(x, y)
-                    val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
-                    val l = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255)
-                    histR[r]++; histG[g]++; histB[b]++; histL[l]++
-                } catch (_: Throwable) {}
-                x += stepX
-            }
-            y += stepY
-        }
-        cb(histR, histG, histB, histL)
     }
 
     fun clear() {
