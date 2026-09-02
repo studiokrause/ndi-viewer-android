@@ -5,16 +5,16 @@
     <string name="mute">Stumm</string>
     <string name="language">Sprache</string>
     <string name="refresh">Aktualisieren</string>
-    <string name="status_init">NDI wird initialisiertâ€¦</string>
-    <string name="status_init_failed">NDI-Initialisierung fehlgeschlagen (Hardware nicht unterstĂĽtzt?)</string>
-    <string name="status_no_source">NDI-Quelle wĂ¤hlen (Listen-Symbol oben)</string>
+    <string name="status_init">NDI wird initialisiert…</string>
+    <string name="status_init_failed">NDI-Initialisierung fehlgeschlagen (Hardware nicht unterstützt?)</string>
+    <string name="status_no_source">NDI-Quelle wählen (Listen-Symbol oben)</string>
     <string name="status_idle">Nicht verbunden</string>
-    <string name="status_connecting">Verbindung: %1$sâ€¦</string>
-    <string name="status_live">â—Ź LIVE</string>
-    <string name="status_no_signal">Kein Signal â€” Sender prĂĽfen</string>
-    <string name="searching">Suche nach NDI-Quellenâ€¦</string>
+    <string name="status_connecting">Verbindung: %1$s…</string>
+    <string name="status_live">● LIVE</string>
+    <string name="status_no_signal">Kein Signal — Sender prüfen</string>
+    <string name="searching">Suche nach NDI-Quellen…</string>
     <string name="manual_hint">Manuell: IP[:port], z. B. 192.168.1.20:5961</string>
     <string name="manual_connect">Verbinden</string>
-    <string name="low_bandwidth">Sparmodus (niedrigere AuflĂ¶sung â€” WLAN)</string>
-    <string name="stats_fmt">%1$dĂ—%2$dp â€˘ %3$s fps (%4$.1f real) â€˘ Drop %5$d â€˘ Verb %6$d</string>
+    <string name="low_bandwidth">Sparmodus (niedrigere Auflösung — WLAN)</string>
+    <string name="stats_fmt">%1$d×%2$dp • %3$s fps (%4$.1f real) • Drop %5$d • Verb %6$d</string>
 </resources>
