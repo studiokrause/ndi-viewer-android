@@ -5,16 +5,16 @@
     <string name="mute">Muto</string>
     <string name="language">Lingua</string>
     <string name="refresh">Aggiorna</string>
-    <string name="status_init">Inizializzazione NDIâ€¦</string>
+    <string name="status_init">Inizializzazione NDI…</string>
     <string name="status_init_failed">Impossibile inizializzare NDI (hardware non supportato?)</string>
     <string name="status_no_source">Seleziona una sorgente NDI (icona lista in alto)</string>
     <string name="status_idle">Non connesso</string>
-    <string name="status_connecting">Connessione: %1$sâ€¦</string>
-    <string name="status_live">â—Ź LIVE</string>
-    <string name="status_no_signal">Nessun segnale â€” verifica sorgente</string>
-    <string name="searching">Ricerca sorgenti NDIâ€¦</string>
+    <string name="status_connecting">Connessione: %1$s…</string>
+    <string name="status_live">● LIVE</string>
+    <string name="status_no_signal">Nessun segnale — verifica sorgente</string>
+    <string name="searching">Ricerca sorgenti NDI…</string>
     <string name="manual_hint">Manuale: IP[:port], es. 192.168.1.20:5961</string>
     <string name="manual_connect">Connetti</string>
-    <string name="low_bandwidth">ModalitĂ  risparmio (risoluzione inferiore â€” Wi-Fi)</string>
-    <string name="stats_fmt">%1$dĂ—%2$dp â€˘ %3$s fps (%4$.1f reale) â€˘ drop %5$d â€˘ conn %6$d</string>
+    <string name="low_bandwidth">Modalità risparmio (risoluzione inferiore — Wi-Fi)</string>
+    <string name="stats_fmt">%1$d×%2$dp • %3$s fps (%4$.1f reale) • drop %5$d • conn %6$d</string>
 </resources>

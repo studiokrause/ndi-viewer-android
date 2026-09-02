@@ -301,9 +301,12 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         }
         txtStream.text = streamInfo
 
+        val pkgInfo = try { packageManager.getPackageInfo(packageName, 0) } catch (_: Throwable) { null }
+        val pkgVersion = pkgInfo?.versionName ?: AppVersion.VERSION
         val aboutMsg = """
             NDI monitor for Android
-            Branch: visual-helpers (BETA)
+            Version: $pkgVersion (${AppVersion.RELEASE} @ ${AppVersion.BRANCH})
+            Build: ${AppVersion.VERSION}
 
             Author: studio.krause
             Generator: OpenCode / Muse Spark 1.2 Contributor
