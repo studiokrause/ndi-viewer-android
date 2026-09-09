@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.lekozaur.ndiviewer"
+        applicationId = "com.studiokrause.ndimonitor"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
