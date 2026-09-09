@@ -15,6 +15,7 @@ app/src/main/obj/
 # Keystores
 *.jks
 *.keystore
+keystore.properties
 
 # Screenshots / temp
 screen*.png

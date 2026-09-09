@@ -27,7 +27,7 @@
         android:textColor="#9AA0A6"
         android:textSize="18sp" />
 
-    <!-- Left vertical icon bar: lista -> audio -> falsecolor -> jezyk -> about -->
+    <!-- Left vertical icon bar: lista -> audio -> falsecolor -> jezyk -> discovery -> about -->
     <LinearLayout
         android:id="@+id/leftBar"
         android:layout_width="wrap_content"
@@ -78,16 +78,6 @@
             android:tint="#E8EAED" />
 
         <ImageButton
-            android:id="@+id/btnAbout"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="About"
-            android:src="@drawable/ic_info"
-            android:tint="#E8EAED" />
-
-        <ImageButton
             android:id="@+id/btnDiscovery"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -95,6 +85,16 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Discovery Server"
             android:src="@drawable/ic_discovery"
+            android:tint="#E8EAED" />
+
+        <ImageButton
+            android:id="@+id/btnAbout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="About"
+            android:src="@drawable/ic_info"
             android:tint="#E8EAED" />
     </LinearLayout>
 

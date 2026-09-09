@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.method.LinkMovementMethod
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -272,8 +273,10 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
         val streamScroll = view.findViewById<View>(R.id.aboutStreamScroll)
         val appScroll = view.findViewById<View>(R.id.aboutAppScroll)
+        val privacyScroll = view.findViewById<View>(R.id.aboutPrivacyScroll)
         val txtStream = view.findViewById<TextView>(R.id.txtStreamInfo)
         val txtAbout = view.findViewById<TextView>(R.id.txtAboutInfo)
+        val txtPrivacy = view.findViewById<TextView>(R.id.txtPrivacyInfo)
 
         // Populate stream tab with detailed current stream info
         val f = lastFrame
@@ -311,6 +314,11 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             Author: studio.krause
             Generator: OpenCode / Muse Spark 1.2 Contributor
 
+            Contact:
+            Website: https://ndimonitor.krause.media.pl/
+            GitHub: https://github.com/studiokrause/ndi-viewer-android
+            Email: devstudiokrause@gmail.com
+
             NDI® is a registered trademark of Vizrt NDI AB.
             This app uses the NDI SDK (libndi.so + headers) provided by Vizrt (formerly NewTek) under the NDI SDK License Agreement.
             This project is not affiliated with, endorsed by, or sponsored by Vizrt/NewTek.
@@ -318,13 +326,19 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             Learn more: https://ndi.video
         """.trimIndent()
         txtAbout.text = aboutMsg
+        txtAbout.movementMethod = LinkMovementMethod.getInstance()
+        txtPrivacy.movementMethod = LinkMovementMethod.getInstance()
 
         // Tabs logic
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
+                streamScroll.visibility = View.GONE
+                appScroll.visibility = View.GONE
+                privacyScroll.visibility = View.GONE
                 when (tab?.position) {
-                    0 -> { streamScroll.visibility = View.VISIBLE; appScroll.visibility = View.GONE }
-                    1 -> { streamScroll.visibility = View.GONE; appScroll.visibility = View.VISIBLE }
+                    0 -> streamScroll.visibility = View.VISIBLE
+                    1 -> appScroll.visibility = View.VISIBLE
+                    2 -> privacyScroll.visibility = View.VISIBLE
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
@@ -333,6 +347,7 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
         // default to Stream tab
         streamScroll.visibility = View.VISIBLE
         appScroll.visibility = View.GONE
+        privacyScroll.visibility = View.GONE
 
         AlertDialog.Builder(this)
             .setView(view)

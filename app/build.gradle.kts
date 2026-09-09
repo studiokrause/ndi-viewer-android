@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,22 +7,36 @@ plugins {
 
 android {
     namespace = "com.lekozaur.ndiviewer"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.1.12297006"
+
+    val keystoreProperties = Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(keystoreProperties.getProperty("storeFile", "upload-keystore.jks"))
+            storePassword = keystoreProperties.getProperty("storePassword", "")
+            keyAlias = keystoreProperties.getProperty("keyAlias", "upload")
+            keyPassword = keystoreProperties.getProperty("keyPassword", "")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.lekozaur.ndiviewer"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0.1"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
         }
         externalNativeBuild {
             cmake {
-                arguments += listOf("-DANDROID_STL=c++_static")
+                arguments += listOf("-DANDROID_STL=c++_static", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
                 cppFlags += listOf("-std=c++17", "-O2")
             }
         }
@@ -37,6 +53,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

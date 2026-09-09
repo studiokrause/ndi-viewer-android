@@ -21,6 +21,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="About" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Privacy Policy" />
     </com.google.android.material.tabs.TabLayout>
 
     <ScrollView
@@ -51,8 +56,26 @@
             android:id="@+id/txtAboutInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autoLink="web"
+            android:autoLink="web|email"
             android:textColor="#E8EAED"
             android:textSize="13sp" />
+    </ScrollView>
+
+    <ScrollView
+        android:id="@+id/aboutPrivacyScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="300dp"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/txtPrivacyInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="web|email"
+            android:text="@string/privacy_policy_en"
+            android:textColor="#E8EAED"
+            android:textSize="12sp" />
     </ScrollView>
 </LinearLayout>
