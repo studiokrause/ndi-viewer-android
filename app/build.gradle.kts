@@ -28,8 +28,8 @@ android {
         applicationId = "com.studiokrause.ndimonitor"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.2"
+        versionCode = 3
+        versionName = "1.0.3"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
