@@ -128,20 +128,13 @@ git checkout visual-helpers
 gradlew.bat --no-daemon assembleDebug
 ```
 
-## NDI Discovery Server - BETA (branch `NDI-discovery`)
+## NDI Discovery Server — removed (Play policy)
 
-> **BETA** - contains all `visual-helpers` features plus a built-in discovery server. Is it possible? **Yes, partially.**
-
-The official Vizrt NDI Discovery Server is closed-source and not part of the public SDK. On Android we emulate its core behaviour:
-
-- **What this branch does:** `NdiDiscoveryServer` (singleton) + `NdiDiscoveryService` (foreground `dataSync`, notification `NDI Discovery Server - ON`, `MulticastLock` continuously held, persistent `NdiFinder` cache, `NsdManager` advertisement `_ndi._tcp` on port 5961). Toggle via left-bar `ic_discovery` (amber when active) or via `NdiDiscoveryServer` prefs `discovery_server`. Other NDI devices on the same subnet can set `Extra IPs = <this Android IP>` or rely on mDNS; the service keeps mDNS warm and answers faster than cold discovery.
-- **Limitations vs official server:** Does not implement the proprietary TCP 5960 directory protocol. It is an mDNS reflector/cache, not a full directory. Requires `FOREGROUND_SERVICE` + `POST_NOTIFICATIONS` (Android 13+). Keeping `MulticastLock` continuously increases battery use. Cannot proxy `NDI|HX` compressed sources that need a hardware decoder. For VLANs where mDNS is filtered, still requires network multicast to be allowed.
-- **When to use:** Enable the Discovery Server toggle when you have many NDI sources and the default `BottomSheet` finder is slow or misses sources due to Android multicast throttling. It makes the source list instant (cache) and helps other receivers find sources via this device.
-
-```bat
-git checkout NDI-discovery
-gradlew.bat --no-daemon assembleDebug
-```
+> The background discovery server (`NdiDiscoveryService` / `NdiDiscoveryServer`, BETA on branch
+> `NDI-discovery`) was removed from `main` in v1.0.1: keeping mDNS warm in the background requires
+> a `dataSync` foreground service, which Google Play only allows for user-initiated data transfers.
+> Source discovery works while the app is open (source list → `NdiFinder` + `MulticastLock`), with no
+> background service and no extra permissions.
 
 ## Limitations / TODO
 
