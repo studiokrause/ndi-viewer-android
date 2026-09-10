@@ -1,8 +1,14 @@
-﻿# NDI monitor for Android
+﻿![NDI Monitor](docs/ndi-socialmedia.jpg)
+
+# NDI monitor for Android
 
 A minimal, standalone NDI® receiver for Android based on the NewTek/Vizrt NDI SDK
 (`v6.3.2.0`). It detects NDI sources on the network (mDNS), displays video with audio,
 and allows manual connection using `IP[:port]`.
+
+| ![Screenshot 1](docs/screen-01.jpg) | ![Screenshot 2](docs/screen-02.jpg) |
+|---|---|
+| ![Screenshot 3](docs/screen-03.jpg) | ![Screenshot 4](docs/screen-04.jpg) |
 
 ## Architecture
 
