@@ -1,4 +1,4 @@
-﻿package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import android.annotation.SuppressLint
 import android.app.Dialog

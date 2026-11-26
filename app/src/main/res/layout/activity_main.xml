@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center">
 
-        <com.lekozaur.ndiviewer.FitSurfaceView
+        <com.lekozaur.ndiviewerhx.FitSurfaceView
             android:id="@+id/surface"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -119,7 +119,7 @@
         android:elevation="6dp"
         android:visibility="gone">
 
-        <com.lekozaur.ndiviewer.FalseColorScaleView
+        <com.lekozaur.ndiviewerhx.FalseColorScaleView
             android:id="@+id/falseColorScaleView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 enum class DecodeStatus {
     UNKNOWN, // szary - nie sprawdzono

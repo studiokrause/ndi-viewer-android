@@ -23,7 +23,7 @@ app/
 │   │   ├── CMakeLists.txt
 │   │   ├── ndi_jni.cpp                           ← native JNI bridge (+ I420/YV12/NV12)
 │   │   └── ndi/Processing.NDI.*.h                ← NDI headers
-│   └── java/com/lekozaur/ndiviewer/
+│   └── java/com/lekozaur/ndiviewerhx/
 │       ├── DecodeStatus.kt / SourceProbe.kt      ← classification + HX vs Full NDI probe
 │       ├── NdiNative.kt   (JNI surface: NdiFinderJni, NdiReceiverJni, NdiNative)
 │       ├── NdiFinder.kt   (discovery thread: wait_for_sources + get_current_sources)
@@ -99,7 +99,7 @@ NDI Sender ──TCP/UDP (mDNS)──► NDI SDK (libndi.so)
 ## Building
 
 ```bat
-cd D:\lekozaur\ndiviewer
+cd D:\lekozaur\ndiviewerhx
 gradlew.bat --no-daemon assembleDebug
 ```
 

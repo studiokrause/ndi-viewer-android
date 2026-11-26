@@ -1,4 +1,4 @@
-﻿package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import java.io.Closeable
 import java.nio.ByteBuffer

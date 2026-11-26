@@ -1,4 +1,4 @@
-﻿// NDI monitor for Android - native JNI bridge over NDI SDK v6
+// NDI monitor for Android - native JNI bridge over NDI SDK v6
 #include <jni.h>
 #include <android/log.h>
 #include <aaudio/AAudio.h>
@@ -12,7 +12,7 @@
 #include <thread>
 #include <vector>
 
-#define LOG_TAG "ndiviewer"
+#define LOG_TAG "ndiviewerhx"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -325,20 +325,20 @@ static void audioLoop(Receiver* R) {
 // ---------------------------------------------------------------- JNI: NdiNative
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_com_lekozaur_ndiviewer_NdiNative_initialize(JNIEnv*, jobject) {
+Java_com_lekozaur_ndiviewerhx_NdiNative_initialize(JNIEnv*, jobject) {
     if (!NDIlib_is_supported_CPU()) { LOGE("CPU not supported by NDI"); return JNI_FALSE; }
     return NDIlib_initialize() ? JNI_TRUE : JNI_FALSE;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_lekozaur_ndiviewer_NdiNative_version(JNIEnv* env, jobject) {
+Java_com_lekozaur_ndiviewerhx_NdiNative_version(JNIEnv* env, jobject) {
     return toJString(env, NDIlib_version());
 }
 
 // ---------------------------------------------------------------- JNI: NdiFinderJni
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeCreate(JNIEnv* env, jobject, jboolean showLocal,
+Java_com_lekozaur_ndiviewerhx_NdiFinderJni_nativeCreate(JNIEnv* env, jobject, jboolean showLocal,
                                                       jstring extraIps) {
     NDIlib_find_create_t cfg;
     memset(&cfg, 0, sizeof cfg);
@@ -353,12 +353,12 @@ Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeCreate(JNIEnv* env, jobject, jboo
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeDestroy(JNIEnv*, jobject, jlong h) {
+Java_com_lekozaur_ndiviewerhx_NdiFinderJni_nativeDestroy(JNIEnv*, jobject, jlong h) {
     if (h) NDIlib_find_destroy((NDIlib_find_instance_t)(intptr_t)h);
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeWaitForSources(JNIEnv*, jobject, jlong h,
+Java_com_lekozaur_ndiviewerhx_NdiFinderJni_nativeWaitForSources(JNIEnv*, jobject, jlong h,
                                                               jint timeoutMs) {
     if (!h) return JNI_FALSE;
     return NDIlib_find_wait_for_sources((NDIlib_find_instance_t)(intptr_t)h, (uint32_t)timeoutMs)
@@ -367,7 +367,7 @@ Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeWaitForSources(JNIEnv*, jobject, 
 }
 
 extern "C" JNIEXPORT jobjectArray JNICALL
-Java_com_lekozaur_ndiviewer_NdiFinderJni_nativeGetSources(JNIEnv* env, jobject, jlong h) {
+Java_com_lekozaur_ndiviewerhx_NdiFinderJni_nativeGetSources(JNIEnv* env, jobject, jlong h) {
     auto* f = (NDIlib_find_instance_t)(intptr_t)h;
     uint32_t n = 0;
     const NDIlib_source_t* srcs = f ? NDIlib_find_get_current_sources(f, &n) : nullptr;
@@ -401,7 +401,7 @@ static StatsHolderIds gSid;
 
 static bool initFrameIds(JNIEnv* env) {
     if (gFid.ok) return true;
-    jclass c = env->FindClass("com/lekozaur/ndiviewer/NdiVideoFrame");
+    jclass c = env->FindClass("com/lekozaur/ndiviewerhx/NdiVideoFrame");
     if (!c || env->ExceptionCheck()) { env->ExceptionClear(); return false; }
     gFid.cls = (jclass)env->NewGlobalRef(c);
     env->DeleteLocalRef(c);
@@ -420,7 +420,7 @@ static bool initFrameIds(JNIEnv* env) {
 
 static bool initStatsIds(JNIEnv* env) {
     if (gSid.ok) return true;
-    jclass c = env->FindClass("com/lekozaur/ndiviewer/NdiStats");
+    jclass c = env->FindClass("com/lekozaur/ndiviewerhx/NdiStats");
     if (!c || env->ExceptionCheck()) { env->ExceptionClear(); return false; }
     gSid.cls = (jclass)env->NewGlobalRef(c);
     env->DeleteLocalRef(c);
@@ -438,7 +438,7 @@ static void releaseHolderIds(JNIEnv* env) {
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCreate(JNIEnv* env, jobject, jstring recvName,
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeCreate(JNIEnv* env, jobject, jstring recvName,
                                                         jint bandwidth) {
     NDIlib_initialize();
 
@@ -448,7 +448,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCreate(JNIEnv* env, jobject, js
     cfg.bandwidth = (NDIlib_recv_bandwidth_e)bandwidth;
     cfg.allow_video_fields = false;
     const char* nm = recvName ? env->GetStringUTFChars(recvName, nullptr) : nullptr;
-    cfg.p_ndi_recv_name = (nm && nm[0]) ? nm : "NDI monitor (Android)";
+    cfg.p_ndi_recv_name = (nm && nm[0]) ? nm : "NDI HX monitor (Android)";
 
     auto* R = new Receiver();
     R->recv = NDIlib_recv_create_v3(&cfg);
@@ -465,7 +465,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCreate(JNIEnv* env, jobject, js
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeConnect(JNIEnv* env, jobject, jlong h,
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeConnect(JNIEnv* env, jobject, jlong h,
                                                          jstring url, jstring name) {
     auto* R = (Receiver*)(intptr_t)h;
     if (!R || !R->recv) return;
@@ -482,21 +482,21 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeConnect(JNIEnv* env, jobject, j
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeDisconnect(JNIEnv*, jobject, jlong h) {
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeDisconnect(JNIEnv*, jobject, jlong h) {
     auto* R = (Receiver*)(intptr_t)h;
     if (!R || !R->recv) return;
     NDIlib_recv_connect(R->recv, nullptr);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeSetMuted(JNIEnv*, jobject, jlong h,
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeSetMuted(JNIEnv*, jobject, jlong h,
                                                           jboolean muted) {
     auto* R = (Receiver*)(intptr_t)h;
     if (R) R->muted = muted == JNI_TRUE;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject, jlong h,
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject, jlong h,
                                                          jint timeoutMs, jobject holder) {
     auto* R = (Receiver*)(intptr_t)h;
     if (!R || !R->recv || !initFrameIds(env)) return nullptr;
@@ -599,7 +599,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject, j
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeGetStats(JNIEnv* env, jobject, jlong h,
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeGetStats(JNIEnv* env, jobject, jlong h,
                                                           jobject stats) {
     auto* R = (Receiver*)(intptr_t)h;
     if (!R || !R->recv || !initStatsIds(env)) return;
@@ -613,7 +613,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeGetStats(JNIEnv* env, jobject, 
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeDestroy(JNIEnv* env, jobject, jlong h) {
+Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeDestroy(JNIEnv* env, jobject, jlong h) {
     auto* R = (Receiver*)(intptr_t)h;
     if (!R) return;
     R->audioRunning = false;
@@ -629,7 +629,7 @@ Java_com_lekozaur_ndiviewer_NdiReceiverJni_nativeDestroy(JNIEnv* env, jobject, j
 jint JNI_OnLoad(JavaVM* vm, void*) {
     JNIEnv* env = nullptr;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) return JNI_ERR;
-    LOGI("ndiviewer native loaded, NDI %s", NDIlib_version());
+    LOGI("ndiviewerhx native loaded, NDI %s", NDIlib_version());
     return JNI_VERSION_1_6;
 }
 

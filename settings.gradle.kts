@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "NDIViewer"
+rootProject.name = "NDIViewerHX"
 include(":app")

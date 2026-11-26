@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,7 +6,7 @@ import android.os.Build
 import java.util.Locale
 
 object LocaleHelper {
-    private const val PREFS = "ndiviewer_prefs"
+    private const val PREFS = "ndiviewerhx_prefs"
     private const val KEY_LANG = "lang"
     val SUPPORTED = listOf("pl", "en", "de", "es", "it", "fr")
     val NAMES = mapOf(

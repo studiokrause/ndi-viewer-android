@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import android.view.LayoutInflater
 import android.view.View

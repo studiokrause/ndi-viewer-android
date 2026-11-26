@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 class NdiFinder(private val onUpdate: (List<NdiSource>) -> Unit) {
     private val jni = NdiFinderJni()

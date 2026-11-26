@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import android.content.Context
 import android.graphics.Canvas

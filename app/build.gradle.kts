@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.lekozaur.ndiviewer"
+    namespace = "com.lekozaur.ndiviewerhx"
     compileSdk = 36
     ndkVersion = "27.1.12297006"
 

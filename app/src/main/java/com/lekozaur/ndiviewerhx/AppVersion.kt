@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 object AppVersion {
     const val VERSION = "1.0.4"

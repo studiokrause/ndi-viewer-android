@@ -1,4 +1,4 @@
-package com.lekozaur.ndiviewer
+package com.lekozaur.ndiviewerhx
 
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -17,7 +17,7 @@ object NdiNative {
     fun init(): Boolean {
         if (!loaded.compareAndSet(false, true)) return true
         System.loadLibrary("ndi")
-        System.loadLibrary("ndiviewer")
+        System.loadLibrary("ndiviewerhx")
         cpuSupported = initialize()
         version = version() ?: ""
         return cpuSupported
