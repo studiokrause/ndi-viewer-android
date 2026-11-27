@@ -90,8 +90,9 @@ class NdiStream(
             }
             if (frame.frameType == FRAME_VIDEO && buf != null) {
                 listener.onFrame(buf, frame)
-            } else if (frame.frameType == FRAME_ERROR) {
-                // Unsupported / compressed FourCC (HX, SpeedHQ, etc.)
+            } else if (frame.frameType == FRAME_ERROR && frame.fourcc != 0) {
+                // A video frame arrived in a FourCC the native bridge cannot convert.
+                // (fourcc == 0 is a plain receive error, e.g. a lost connection.)
                 val now = System.currentTimeMillis()
                 if (now - lastDecoderErrorMs > 5000) {
                     lastDecoderErrorMs = now
@@ -102,11 +103,7 @@ class NdiStream(
                         ((fc shr 16) and 0xFF).toByte(),
                         ((fc shr 24) and 0xFF).toByte()
                     )).replace(Regex("[^ -~]"), "?")
-                    listener.onError(
-                        "Video decoder not found (FourCC=$fcStr / $fc, ${frame.xres}x${frame.yres}). " +
-                        "To źródło używa kompresji NDI|HX / SpeedHQ — nieobsługiwane na tym urządzeniu. " +
-                        "Przełącz nadajnik na Full NDI (np. NDI Screen Capture → Full NDI) lub ustaw wyższą przepustowość."
-                    )
+                    listener.onError("Nieobsługiwany format obrazu (FourCC=$fcStr / $fc, ${frame.xres}x${frame.yres}).")
                 }
             }
             if (frame.frameType == FRAME_STATUS_CHANGE || frame.frameType == FRAME_SOURCE_CHANGE) {

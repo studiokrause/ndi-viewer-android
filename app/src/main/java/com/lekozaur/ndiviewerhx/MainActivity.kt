@@ -276,6 +276,10 @@ class MainActivity : AppCompatActivity(), NdiStreamListener {
             This app uses the NDI SDK (libndi.so + headers) provided by Vizrt (formerly NewTek) under the NDI SDK License Agreement.
             This project is not affiliated with, endorsed by, or sponsored by Vizrt/NewTek.
 
+            NDI|HX video and audio are decoded with FFmpeg 7.1.5 (https://ffmpeg.org),
+            used under the GNU LGPL v2.1 or later as separate shared libraries.
+            Source code and build script: https://github.com/studiokrause/ndi-viewer-android
+
             Learn more: https://ndi.video
         """.trimIndent()
         txtAbout.text = aboutMsg

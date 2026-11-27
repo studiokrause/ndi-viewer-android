@@ -510,6 +510,7 @@ Java_com_lekozaur_ndiviewerhx_NdiReceiverJni_nativeCapture(JNIEnv* env, jobject,
         if (t == NDIlib_frame_type_error) LOGE("recv error!");
         else if (t == NDIlib_frame_type_none) { /* no frame yet */ }
         env->SetIntField(holder, gFid.frameType, (jint)t);
+        env->SetIntField(holder, gFid.fourcc, 0);
         return nullptr;
     }
 

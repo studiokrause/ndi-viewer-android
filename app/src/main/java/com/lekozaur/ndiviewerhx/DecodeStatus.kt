@@ -41,12 +41,4 @@ object DecodeClassifier {
             else -> DecodeStatus.YELLOW
         }
     }
-
-    fun fromNameHeuristic(name: String): DecodeStatus {
-        val n = name.uppercase()
-        // HX / H264 markers are strong red signal even before probing
-        val redMarkers = listOf("HX", "H.264", "H264", "H.265", "H265", "SHQ", "SPEEDHQ", "HEVC", "AVC")
-        if (redMarkers.any { it in n }) return DecodeStatus.RED
-        return DecodeStatus.UNKNOWN
-    }
 }

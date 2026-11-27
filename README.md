@@ -5,8 +5,9 @@
 ![NDI Monitor](docs/ndi-socialmedia.jpg)
 
 A minimal, standalone NDI® receiver for Android based on the NewTek/Vizrt NDI SDK
-(`v6.3.2.0`). It detects NDI sources on the network (mDNS), displays video with audio,
-and allows manual connection using `IP[:port]`.
+(`v6.4.0.2`). It detects NDI sources on the network (mDNS), displays video with audio
+from both Full NDI and NDI|HX (H.264 / H.265) senders, and allows manual connection
+using `IP[:port]`.
 
 | ![Screenshot 1](docs/screen-01.jpg) | ![Screenshot 2](docs/screen-02.jpg) |
 |---|---|
@@ -18,13 +19,15 @@ and allows manual connection using `IP[:port]`.
 app/
 ├── src/main/
 │   ├── AndroidManifest.xml
-│   ├── jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/libndi.so   ← NDI SDK
+│   ├── jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/
+│   │   ├── libndi.so                             ← NDI SDK
+│   │   └── libavcodec-ndi.so, libavutil-ndi.so   ← FFmpeg (NDI|HX decoders)
 │   ├── cpp/
 │   │   ├── CMakeLists.txt
 │   │   ├── ndi_jni.cpp                           ← native JNI bridge (+ I420/YV12/NV12)
 │   │   └── ndi/Processing.NDI.*.h                ← NDI headers
 │   └── java/com/lekozaur/ndiviewerhx/
-│       ├── DecodeStatus.kt / SourceProbe.kt      ← classification + HX vs Full NDI probe
+│       ├── DecodeStatus.kt / SourceProbe.kt      ← source status probe
 │       ├── NdiNative.kt   (JNI surface: NdiFinderJni, NdiReceiverJni, NdiNative)
 │       ├── NdiFinder.kt   (discovery thread: wait_for_sources + get_current_sources)
 │       ├── NdiStream.kt   (video + statistics threads + JNI orchestration)
@@ -80,21 +83,50 @@ NDI Sender ──TCP/UDP (mDNS)──► NDI SDK (libndi.so)
 - **Lifecycle**: the Activity's `configChanges` keeps the orientation without restarting.
   `singleTask` prevents multiple instances.
 
+## NDI|HX decoding (FFmpeg)
+
+The NDI SDK decodes Full NDI (SpeedHQ) itself, but not H.264, H.265 or AAC: for those
+`libndi.so` loads FFmpeg at runtime, by the names `libavcodec-ndi.so.61` /
+`libavcodec.so.61` and `libavutil-ndi.so.59` / `libavutil.so.59`. Android provides
+neither to apps, so without them every NDI|HX source shows the SDK's
+*"Video decoder not found"* picture.
+
+The app therefore ships its own build of **FFmpeg 7.1.5**, reduced to the `h264`,
+`hevc`, `aac` and `aac_latm` decoders (software decoding):
+
+- An APK only packages files ending in `.so`, so the libraries are named
+  `libavcodec-ndi.so` / `libavutil-ndi.so` and carry the versioned SONAME.
+  `NdiNative.init()` loads them before `libndi`, which then resolves them by SONAME.
+- Rebuild them (NDK r27; Linux, macOS or Git Bash on Windows) from the official
+  [source archive](https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz):
+
+```bash
+ANDROID_NDK=/path/to/ndk tools/build-ffmpeg-android.sh ffmpeg-7.1.5.tar.xz
+```
+
+FFmpeg is used under the **GNU LGPL v2.1 or later**
+([license text](third_party/ffmpeg/COPYING.LGPLv2.1)), built without GPL or non-free
+parts and linked dynamically; the sources are unmodified (the build script only changes
+the generated linker setting for the SONAME). H.264, H.265 and AAC may be covered by
+patents — licensing them for a distributed product is the distributor's responsibility,
+as the NDI SDK documentation also notes.
+
 ## Build Configuration
 
 | Element        | Value                                  |
 | -------------- | -------------------------------------- |
 | Gradle         | 8.11.1 (cached)                        |
-| AGP            | 8.7.3                                  |
+| AGP            | 8.9.1                                  |
 | Kotlin         | 2.1.21                                 |
 | NDK            | 27.1.12297006                          |
 | CMake (Android)| 3.22.1                                 |
-| compileSdk     | 35                                     |
+| compileSdk     | 36                                     |
 | minSdk         | 26 (required by AAudio)                |
-| targetSdk      | 35                                     |
-| JDK            | 17                                     |
+| targetSdk      | 36                                     |
+| JDK            | 17 – 21 (`JAVA_HOME`)                  |
 | ABIs           | arm64-v8a, armeabi-v7a, x86, x86_64    |
-| NDI SDK        | v6.3.2.0                               |
+| NDI SDK        | v6.4.0.2                               |
+| FFmpeg         | 7.1.5 (LGPL, decoders only)            |
 
 ## Building
 
@@ -105,8 +137,9 @@ gradlew.bat --no-daemon assembleDebug
 
 Output: `app/build/outputs/apk/debug/app-debug.apk`.
 
-Replace JDK 17 in `gradle.properties` (`org.gradle.java.home`) with the correct
-directory if yours is different.
+Gradle uses the JDK from `JAVA_HOME`; Gradle 8.11.1 does not run on JDK 24 or newer.
+A signed release build (`assembleRelease`) additionally needs `keystore.properties`
+and the keystore it points to; neither is part of the repository.
 
 ## Decode Status Indicator (v0.5)
 
@@ -114,15 +147,13 @@ The source list displays a colored dot on the right-hand side of the name:
 
 | Color | Meaning | FourCC |
 |-------|---------|--------|
-| 🟢 Green | **Will definitely decode** — full Full NDI, uncompressed (`UYVY`, `UYVA`, `RGBA/BGRA` + `I420/YV12/NV12`) is natively supported in `ndi_jni.cpp` (`uyvyToRgba`/`i420ToRgba`/… → `RGBA`). |
-| 🟡 Yellow | **May work** — unknown format or no frame received during the 2.7 s probe (e.g. `P216/PA16` 16-bit, or timeout). Worth trying. |
-| 🔴 Red | **Will definitely not work** — compressed `NDI|HX / H.264/H.265/SpeedHQ` (`H264/H265/AVC1/HEVC/SHQ0-7`). Requires a hardware decoder that does not exist on this device. Switch the sender to **Full NDI** (NDI Screen Capture → Full NDI, OBS NDI → Main profile). |
+| 🟢 Green | A video frame arrived in a format the app can display (`UYVY`, `UYVA`, `RGBA/BGRA` + `I420/YV12/NV12`). |
+| 🟡 Yellow | **May work** — no frame received during the 8 s probe, or a 16-bit format (`P216/PA16`). Worth trying. |
+| 🔴 Red | A frame arrived in a format the app cannot convert. |
 
-Pre-probe heuristic: a name containing `HX`, `H264`, `H265`, `SpeedHQ`, `HEVC`, or `AVC`
-is immediately marked 🔴. Otherwise, every new entry is probed in the background by
-`SourceProbe` (creates a temporary `NdiReceiverJni`, connects for ~900 ms ×3,
-classifies `FourCC` via `DecodeClassifier`, and updates `SourceAdapter` through
-`updateStatus`).
+Every new entry is probed in the background by `SourceProbe` (creates a temporary
+`NdiReceiverJni`, waits up to 8 s for the first video frame, classifies its `FourCC`
+via `DecodeClassifier`, and updates `SourceAdapter` through `updateStatus`).
 
 ## Visual Helpers - BETA (branch `visual-helpers` / `NDI-discovery`)
 
@@ -146,14 +177,9 @@ gradlew.bat --no-daemon assembleDebug
 
 ## Limitations / TODO
 
-- H.264/NDI-HX in 🔴 mode requires an external decoder (MediaCodec `H264` or
-  `libavcodec`) — currently it is detected and reported as
-  `Video decoder not found (FourCC=H264 ...)` instead of showing a black screen.
-  For `I420/YV12/NV12` (a common HX decoder fallback when available), `BT.709`
-  conversion has already been added.
-- `libndi.so` from SDK v6.3.2 does not have 16-KB page alignment — Google Play has
-  required this for new apps since November 2025. This requires rebuilding the SDK
-  from source or upgrading the NDI SDK.
+- NDI|HX is decoded in software by FFmpeg; high-resolution or high-frame-rate H.265
+  streams may be too heavy for slower devices. Hardware decoding (MediaCodec) is not
+  used.
 - Audio may require minor tuning for a specific device (NDI typically uses 48 kHz,
   and the default AAudio path is also 48 kHz on Android).
 - Video/audio synchronization in the first version is based on displaying frames as
@@ -178,6 +204,8 @@ This project is not affiliated with, endorsed by, sponsored by, or otherwise off
 All trademarks, service marks, product names, logos, and company names mentioned in this project are the property of their respective owners.
 
 Copyright © 2026 the authors of NDI monitor for Android - and Opencode :).
+
+This software uses libraries from the [FFmpeg](https://ffmpeg.org) project under the LGPL v2.1 or later; FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.
 
 The source code of this application is distributed under the license specified in this repository. This license does **not** grant any rights to redistribute, modify, or otherwise use the NDI SDK beyond the rights expressly granted by the applicable NDI SDK License Agreement.
 

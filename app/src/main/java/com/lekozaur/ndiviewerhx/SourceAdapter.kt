@@ -43,9 +43,7 @@ class SourceAdapter(private val onClick: (NdiSource) -> Unit) :
         val s = items[position]
         holder.name.text = s.name
         holder.url.text = s.url
-        val st = statusMap[s.url] ?: DecodeClassifier.fromNameHeuristic(s.name).let {
-            if (it == DecodeStatus.UNKNOWN) DecodeStatus.UNKNOWN else it
-        }
+        val st = statusMap[s.url] ?: DecodeStatus.UNKNOWN
         val bg = when (st) {
             DecodeStatus.GREEN -> R.drawable.dot_green
             DecodeStatus.YELLOW -> R.drawable.dot_yellow

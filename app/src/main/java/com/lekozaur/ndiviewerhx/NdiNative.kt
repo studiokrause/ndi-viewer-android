@@ -16,6 +16,10 @@ object NdiNative {
 
     fun init(): Boolean {
         if (!loaded.compareAndSet(false, true)) return true
+        // FFmpeg decoders for NDI|HX. libndi dlopen()s them as libavutil-ndi.so.59 and
+        // libavcodec-ndi.so.61, which only resolves (by SONAME) once they are already loaded.
+        System.loadLibrary("avutil-ndi")
+        System.loadLibrary("avcodec-ndi")
         System.loadLibrary("ndi")
         System.loadLibrary("ndiviewerhx")
         cpuSupported = initialize()
