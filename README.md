@@ -4,9 +4,17 @@
 
 ![NDI Monitor](docs/ndi-socialmedia.jpg)
 
+> ## 🆕 Now with NDI HX decoding
+>
+> **Since version 1.0.6, NDI monitor decodes NDI HX (H.264 / H.265) sources as well as
+> Full NDI.** Cameras, encoders and NDI Screen Capture HX now show video instead of
+> *"Video decoder not found"*.
+>
+> ### ⬇️ [Download the latest APK](https://github.com/studiokrause/ndi-viewer-android/releases/latest)
+
 A minimal, standalone NDI® receiver for Android based on the NewTek/Vizrt NDI SDK
 (`v6.4.0.2`). It detects NDI sources on the network (mDNS), displays video with audio
-from both Full NDI and NDI|HX (H.264 / H.265) senders, and allows manual connection
+from both Full NDI and NDI HX (H.264 / H.265) senders, and allows manual connection
 using `IP[:port]`.
 
 | ![Screenshot 1](docs/screen-01.jpg) | ![Screenshot 2](docs/screen-02.jpg) |
@@ -21,7 +29,7 @@ app/
 │   ├── AndroidManifest.xml
 │   ├── jniLibs/{arm64-v8a,armeabi-v7a,x86,x86_64}/
 │   │   ├── libndi.so                             ← NDI SDK
-│   │   └── libavcodec-ndi.so, libavutil-ndi.so   ← FFmpeg (NDI|HX decoders)
+│   │   └── libavcodec-ndi.so, libavutil-ndi.so   ← FFmpeg (NDI HX decoders)
 │   ├── cpp/
 │   │   ├── CMakeLists.txt
 │   │   ├── ndi_jni.cpp                           ← native JNI bridge (+ I420/YV12/NV12)
@@ -83,12 +91,12 @@ NDI Sender ──TCP/UDP (mDNS)──► NDI SDK (libndi.so)
 - **Lifecycle**: the Activity's `configChanges` keeps the orientation without restarting.
   `singleTask` prevents multiple instances.
 
-## NDI|HX decoding (FFmpeg)
+## NDI HX decoding (FFmpeg)
 
 The NDI SDK decodes Full NDI (SpeedHQ) itself, but not H.264, H.265 or AAC: for those
 `libndi.so` loads FFmpeg at runtime, by the names `libavcodec-ndi.so.61` /
 `libavcodec.so.61` and `libavutil-ndi.so.59` / `libavutil.so.59`. Android provides
-neither to apps, so without them every NDI|HX source shows the SDK's
+neither to apps, so without them every NDI HX source shows the SDK's
 *"Video decoder not found"* picture.
 
 The app therefore ships its own build of **FFmpeg 7.1.5**, reduced to the `h264`,
@@ -177,7 +185,7 @@ gradlew.bat --no-daemon assembleDebug
 
 ## Limitations / TODO
 
-- NDI|HX is decoded in software by FFmpeg; high-resolution or high-frame-rate H.265
+- NDI HX is decoded in software by FFmpeg; high-resolution or high-frame-rate H.265
   streams may be too heavy for slower devices. Hardware decoding (MediaCodec) is not
   used.
 - Audio may require minor tuning for a specific device (NDI typically uses 48 kHz,
